@@ -1,0 +1,20 @@
+{
+  "name": "ipinfo.io",
+  "avatar": "https://ipinfo.io/_next/static/media/logo.a3c39026.svg",
+  "functions": {
+    "name": "search_ip",
+    "description": "Query ip information based on ip address",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "string",
+          "description": "ip address, eg:1.1.1.1"
+        }
+      },
+      "required": [
+        "ip"
+      ]
+    }
+  }
+}
