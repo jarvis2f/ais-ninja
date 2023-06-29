@@ -1,0 +1,28 @@
+{
+  "server": {
+    "port": 5174
+  },
+  "database": {
+    "name": "ais_ninja",
+    "port": 3306,
+    "host": "127.0.0.1",
+    "user": "root",
+    "password": "123456",
+    "sync": false
+  },
+  "redis": {
+    "url": "redis[s]://[[username][:password]@][host][:port][/db-number]"
+  },
+  "email": {
+    "host": "smtp.office365.com",
+    "port": 587,
+    "from": "email@outlook.com",
+    "auth_user": "user",
+    "auth_pass": "password"
+  },
+  "social": {
+    "google": {
+      "client_id": ""
+    }
+  }
+}

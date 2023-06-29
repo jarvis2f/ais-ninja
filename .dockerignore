@@ -1,0 +1,15 @@
+**/node_modules/
+**/dist
+.git
+npm-debug.log
+.coverage
+.coverage.*
+.env
+.aws
+**/test
+plugins
+
+.idea
+.run
+*.iml
+

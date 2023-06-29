@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to AIS!</title>
+    <style>
+        /* Reset some default styles for better compatibility */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Main container */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        /* Logo section */
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            max-width: 150px;
+        }
+
+        /* Content section */
+        .content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Heading */
+        .heading {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        /* Message */
+        .message {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        /* Call-to-action button */
+        .cta-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #ff6600;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        /* Verification code */
+        .verification-code {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 18px;
+            color: #333;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="logo">
+        <img src="{logo}" alt="Logo">
+    </div>
+    <div class="content">
+        <h1 class="heading">Welcome to AIS!</h1>
+        <p class="message">Thank you for joining our community. We're excited to have you on board.</p>
+        <p class="message">To complete your registration, please use the verification code below:</p>
+        <div class="verification-code">{{code}}</div>
+        <p class="message">If you have any questions or need assistance, please contact our support team at support@ais.ninja .</p>
+    </div>
+    <div class="footer">
+        <p>This email is automated, so please do not reply to this message.</p>
+    </div>
+</div>
+</body>
+
+</html>

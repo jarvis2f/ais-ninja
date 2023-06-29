@@ -1,0 +1,56 @@
+version: '3.3'
+services:
+  mysql:
+    image: mysql/mysql-server:8.0.23
+    restart: always
+    command: --bind-address=0.0.0.0
+    container_name: ais-ninja-mysql
+    environment:
+      MYSQL_DATABASE: ais_ninja
+      MYSQL_USER: ais
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/conf:/etc/mysql/conf.d
+    networks:
+      - ais-ninja
+
+  redis:
+    image: redis
+    restart: always
+    container_name: ais-ninja-redis
+    volumes:
+      - ./redis/data:/data
+    networks:
+      - ais-ninja
+
+  app:
+    image: jarvis2f/ais-ninja:1.0.0
+    restart: always
+    container_name: ais-ninja-app
+    environment:
+      DATABASE_NAME: ais_ninja
+      DATABASE_PORT: 3306
+      DATABASE_HOST: mysql
+      DATABASE_USER: ais
+      DATABASE_PASSWORD: ${MYSQL_PASSWORD}
+      DATABASE_SYNC: true
+      REDIS_URL: redis://redis:6379/0
+      EMAIL_HOST: smtp.office365.com
+      EMAIL_PORT: 587
+      EMAIL_FROM:
+      EMAIL_AUTH_USER:
+      EMAIL_AUTH_PASS:
+      SOCIAL_GOOGLE_CLIENT_ID:
+      VITE_APP_REQUEST_HOST:
+    ports:
+      - 80:80
+    networks:
+      - ais-ninja
+    depends_on:
+      - mysql
+      - redis
+
+networks:
+  ais-ninja:
+    driver: bridge
