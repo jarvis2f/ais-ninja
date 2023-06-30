@@ -16,7 +16,7 @@ FROM node:18-slim as app
 # 安装 nginx
 RUN apt-get update  \
     && apt-get install -y nginx \
-    && apt-get install -y git \
+    && apt-get install -y git
 
 ENV WORKDIR="/app" \
     FRONTEND_DIR="/frontend" \
