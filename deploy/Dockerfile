@@ -5,11 +5,11 @@ WORKDIR ${FRONTEND_DIR}
 
 # 复制前端代码并安装依赖
 COPY ./frontend/package.json .
-RUN yarn install
+RUN npm install
 COPY ./frontend/ .
 
 # 构建前端
-RUN yarn run build
+RUN npm run build
 
 FROM node:18-slim as app
 
@@ -32,11 +32,11 @@ COPY --from=builder ${FRONTEND_DIR}/dist/ ${WORKDIR}/${FRONTEND_DIR}/
 
 # 安装后端依赖
 COPY ./server/package.json ./server/
-RUN cd server && yarn install
+RUN cd server && npm install
 COPY ./server/ ./server/
 
 # 复制 nginx 配置文件
 COPY ./deploy/nginx.conf /etc/nginx/sites-enabled/default
 EXPOSE 80
 
-ENTRYPOINT service nginx start && cd server && yarn run start
+ENTRYPOINT service nginx start && cd server && npm run start
