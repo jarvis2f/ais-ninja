@@ -27,6 +27,7 @@ jobs:
       uses: docker/build-push-action@v4.1.1
       with:
         context: .
+        file: ./deploy/Dockerfile
         push: true
         platforms: linux/amd64,linux/arm64,linux/arm
         tags: jarvis2f/ais-ninja:latest
