@@ -95,7 +95,7 @@ function ConfigPage() {
 	const handleImportPlugin = async (values: { [key: string]: string | number }) => {
 		const importUrl = values.url as string;
 		// 判断是否git仓库地址
-		if (!importUrl || /https?:\/\/github.com\/.+\/.+/i.test(importUrl)) {
+		if (!importUrl || !(/https?:\/\/github.com\/.+\/.+/i.test(importUrl))) {
 			return;
 		}
 		await importPluginFunction({url: importUrl}).then((res) => {
