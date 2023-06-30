@@ -1,6 +1,9 @@
-import {DataTypes, literal, Op} from 'sequelize';
+import {DataTypes} from 'sequelize';
 import {Column, Model, Table} from "sequelize-typescript";
-import utils from "../utils";
+import {getLogger} from "../utils/logger";
+import {available_models} from "../chatgpt";
+
+const logger = getLogger('models/Token');
 
 interface TokenAttributes {
   id?: number;
@@ -83,7 +86,9 @@ class Token extends Model<TokenAttributes> implements TokenAttributes {
   public static async add(param: { models: any; host: any; key: any; remarks: any; status: any }): Promise<Token> {
     return Token.create({
       ...param,
-    } as TokenAttributes);
+    } as TokenAttributes, {
+      returning: true,
+    });
   }
 
   public static async edit(param: {
@@ -96,21 +101,28 @@ class Token extends Model<TokenAttributes> implements TokenAttributes {
   }): Promise<[Token, (boolean | null)]> {
     return Token.upsert({
       ...param,
-    } as TokenAttributes);
+    } as TokenAttributes, {
+      returning: true,
+    });
   }
 
-  public static async getRandomToken(model: string): Promise<Token | null> {
-    return await Token.findOne({
+  public static async getChatModels() {
+    return Token.findAll({
       where: {
-        status: 1,
-        [Op.or]: [
-          {models: {[Op.like]: `${model},%`}},
-          {models: {[Op.like]: `%,${model}`}},
-          {models: {[Op.like]: `%,${model},%`}},
-          {models: {[Op.eq]: model}}
-        ]
+        status: 1
       },
-      order: literal('RAND()')
+      raw: true
+    }).then((tokens) => {
+      if (tokens.length === 0) {
+        logger.warn("No OpenAI tokens provided");
+        return;
+      }
+      let models = new Set(tokens.flatMap((token) => {
+        return token.models?.split(",");
+      }));
+      return available_models.filter((model) => {
+        return models.has(model.value);
+      });
     });
   }
 }

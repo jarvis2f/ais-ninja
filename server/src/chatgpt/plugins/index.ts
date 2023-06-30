@@ -7,7 +7,7 @@ import fetch from 'node-fetch';
 
 const exec = util.promisify(require('child_process').exec);
 
-export const PLUGINS_MODULE_DIR = path.join(__dirname, '../../plugins');
+export const PLUGINS_MODULE_DIR = path.join(__dirname, '../../../../plugins');
 
 const logger = getLogger('plugins');
 
@@ -15,6 +15,8 @@ interface Options {
   debug?: boolean;
   log?: (...args: any[]) => void;
 }
+
+const available_modules = ['dayjs', 'pinyin', 'lodash', 'puppeteer-core'];
 
 export function createPlugin(script: string, options: Options) {
   const pluginsModulesDir = path.join(PLUGINS_MODULE_DIR, 'node_modules');
@@ -25,7 +27,7 @@ export function createPlugin(script: string, options: Options) {
     eval: false,
     wasm: false,
     require: {
-      external: ['dayjs', 'pinyin', 'lodash'],
+      external: available_modules,
       root: PLUGINS_MODULE_DIR,
     },
     wrapper: 'commonjs',
@@ -62,7 +64,7 @@ export function createPlugin(script: string, options: Options) {
   }
 }
 
-export async function installModule(moduleName: string, moduleDir: string) : Promise<boolean> {
+export async function installModule(moduleName: string, moduleDir: string): Promise<boolean> {
   if (!fs.existsSync(moduleDir)) {
     fs.mkdirSync(moduleDir);
     fs.writeFileSync(path.join(moduleDir, 'package.json'), '{}');
@@ -102,8 +104,15 @@ function moduleExists(moduleName: string, moduleDir: string): boolean {
 export async function installModuleIfNeeded(moduleName: string) {
   const moduleDir = PLUGINS_MODULE_DIR;
   if (!moduleExists(moduleName, moduleDir)) {
-    await installModule(moduleName, moduleDir);
+    return await installModule(moduleName, moduleDir);
   } else {
-    logger.info(`Module "${moduleName}" is already installed.`)
+    logger.info(`Module "${moduleName}" is already installed.`);
+    return true;
   }
+}
+
+export function initPlugin() {
+  available_modules.forEach((moduleName) => {
+    installModuleIfNeeded(moduleName).then();
+  });
 }

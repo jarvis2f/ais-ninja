@@ -20,7 +20,7 @@ async function toPinyin({text, text2}) {
   )
     .run('toPinyin', JSON.stringify({text2: '世界', text: '你好'}))
     .then(console.log);
-});
+}, 10000);
 
 test('Execute plugin code with sandbox module', async () => {
   await createPlugin('async function SearchIP({ip: ip}) {\n' +
@@ -54,9 +54,33 @@ console.log(_.chunk(['a', 'b', 'c', 'd'], 2));
   `,
     {debug: true, log: console.log}
   )
-  .run()
-  .then(console.log);
+    .run()
+    .then(console.log);
 });
+
+test('Execute plugin code with external module (puppeteer-core)', async () => {
+  await installModuleIfNeeded('puppeteer-core');
+  await createPlugin(`
+const puppeteer = require('puppeteer-core');
+(async () => {
+  const browser = await puppeteer.launch({
+    executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    headless: false,
+    defaultViewport: {
+      width: 1920,
+      height: 1080
+    }});
+  const page = await browser.newPage();
+  await page.goto('https://www.baidu.com');
+  await page.screenshot({path: 'example.png'});
+  await browser.close();
+})();
+  `,
+    {debug: true, log: console.log}
+  )
+    .run()
+    .then(console.log);
+}, 10000);
 
 test('Execute plugin code with external module not allowed', async () => {
   await installModuleIfNeeded('request');

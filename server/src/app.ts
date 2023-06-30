@@ -15,6 +15,7 @@ import res_handler from "./middleware/res_handler";
 import {initClients} from "./chatgpt";
 import {config} from "./config/config";
 import path from "path";
+import {initPlugin} from "./chatgpt/plugins";
 
 let logger = getLogger('app');
 
@@ -30,6 +31,9 @@ export const startServer = async () => {
     }).catch((err) => {
       logger.error("OpenAI clients initialization failed: " + err);
     });
+
+    // 初始化插件
+    initPlugin();
 
     const app = express();
     app.use(res_handler)

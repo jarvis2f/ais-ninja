@@ -1,89 +1,97 @@
 .plugin_edit {
-  display: flex;
-  height: 89vh;
+	display: flex;
+	height: 89vh;
 
-  &_menu {
-    max-width: 30%;
-    position: relative;
-    height: 100%;
+	&_menu {
+		max-width: 30%;
+		position: relative;
+		height: 100%;
 
-    > ul {
-      height: 100%;
-    }
+		> ul {
+			height: 100%;
+		}
 
-    &_xs {
-      position: absolute;
-    }
+		&_xs {
+			position: absolute;
+		}
 
-    &_collapsed {
-      position: absolute;
-      width: 300px;
-      z-index: 1;
-      max-width: 300px;
-      > ul {
-        width: 300px;
-      }
-    }
+		&_collapsed {
+			position: absolute;
+			width: 300px;
+			z-index: 1;
+			max-width: 300px;
 
-    :global{
-      .ant-menu-item {
-        transition: none;
-      }
-    }
+			> ul {
+				width: 300px;
+			}
+		}
 
-    &_collapsed_button {
-      font-size: 24px;
-      position: absolute;
-      right: -8px;
-      top: 40%;
-      z-index: 101;
-      width: 24px;
-      height: 24px;
-      text-align: center;
-      border-radius: 40px;
-      inset-inline-end: -13px;
-      transition: transform 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: rgba(0, 0, 0, 0.25);
-      background-color: #ffffff;
-      box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 1px 4px -1px rgba(25, 15, 15, 0.07), 0 0 1px 0 rgba(0, 0, 0, 0.08);
+		:global {
+			.ant-menu-item {
+				transition: none;
+			}
+		}
 
-      &:hover {
-        color: rgba(0, 0, 0, 0.65);
-        box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.05), 0 2px 8px -2px rgba(25, 15, 15, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.08);
-      }
+		&_collapsed_button {
+			font-size: 24px;
+			position: absolute;
+			right: -8px;
+			top: 40%;
+			z-index: 101;
+			width: 24px;
+			height: 24px;
+			text-align: center;
+			border-radius: 40px;
+			inset-inline-end: -13px;
+			transition: transform 0.3s;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			color: rgba(0, 0, 0, 0.25);
+			background-color: #ffffff;
+			box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 1px 4px -1px rgba(25, 15, 15, 0.07), 0 0 1px 0 rgba(0, 0, 0, 0.08);
 
-      > svg {
-        font-size: 10px;
-      }
-    }
-  }
+			&:hover {
+				color: rgba(0, 0, 0, 0.65);
+				box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.05), 0 2px 8px -2px rgba(25, 15, 15, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.08);
+			}
 
-  &_content {
-    width: 100%;
-    max-width: 100%;
-    padding: 0 10px;
+			> svg {
+				font-size: 10px;
+			}
+		}
 
-    &_xs {
-      min-width: 100%;
-    }
-  }
+		&_add_tooltip {
+			width: 100%;
+			text-align: center;
+		}
+	}
 
-  :global {
-    :has(.remove_padding) {
-      > li {
-        padding-left: 0 !important;
-      }
-    }
+	&_content {
+		width: 100%;
+		max-width: 100%;
+		padding: 0 10px;
+		overflow-y: auto;
 
-    .ant-menu-inline-collapsed {
-      width: 0;
-      .ant-menu-item-group-title {
-        display: none;
-      }
-    }
-  }
+		&_xs {
+			min-width: 100%;
+		}
+	}
+
+	:global {
+		:has(.remove_padding) {
+			> li {
+				padding-left: 0 !important;
+			}
+		}
+
+		.ant-menu-inline-collapsed {
+			width: 0;
+
+			.ant-menu-item-group-title {
+				display: none;
+			}
+		}
+	}
 }

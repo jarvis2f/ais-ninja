@@ -1,0 +1,22 @@
+{
+  "name": "Google Search",
+  "avatar": "https://raw.githubusercontent.com/simple-icons/simple-icons/2309009f463bc6bb49acc0b45f662cc85fdee503/icons/google.svg",
+  "functions": [
+    {
+      "name": "search",
+      "description": "Search web info use Google",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "What to search for"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    }
+  ]
+}

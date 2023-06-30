@@ -61,7 +61,7 @@ export class Chat {
       logger.error("OpenAI Error: " + error.toJSON());
       return error.response;
     });
-    if (response.status !== 200) {
+    if (response?.status !== 200) {
       response.data?.pipe(this.getErrorTransform())
       return;
     }
@@ -82,7 +82,7 @@ export class Chat {
         } catch (e) {
           data = chunk.toString();
         }
-        this.res.status(500).json(new ApiResponse(500, data, "OpenAI Error"));
+        this.res_write(data);
         callback();
       }
     });

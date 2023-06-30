@@ -37,7 +37,7 @@ router.post('/', async function (req, res) {
     return;
   }
   res.json(ApiResponse.success(await Token.add({key, host, remarks, models, status}).then((token) => {
-    putClient(token);
+    putClient(token.toJSON());
     return token;
   })));
 });
@@ -49,7 +49,7 @@ router.put('/', async function (req, res) {
     return;
   }
   res.json(ApiResponse.success(await Token.edit({id, key, host, remarks, models, status}).then((data) => {
-    putClient(data?.[0]);
+    putClient(data?.[0]?.toJSON());
     return data?.[0];
   })))});
 router.post('/check', async function (req, res) {

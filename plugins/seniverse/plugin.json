@@ -1,0 +1,22 @@
+{
+  "name": "心知天气",
+  "avatar": "https://static.sencdn.com/brand/logo/logo-red-text-gray-2x.png",
+  "functions": [
+    {
+      "name": "search_weather",
+      "description": "Query china real time weather information from seniverse.com",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "China Pinyin Location name, e.g. beijing"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      }
+    }
+  ]
+}

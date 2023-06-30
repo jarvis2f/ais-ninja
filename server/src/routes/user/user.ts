@@ -20,6 +20,7 @@ import yipay from "../../utils/yipay";
 import {Notification} from "../../models/Notification";
 import {config} from "../../config/config";
 import {getLogger} from "../../utils/logger";
+import {Token} from "../../models/Token";
 
 const router = Router();
 const logger = getLogger('routes:user:user');
@@ -33,7 +34,8 @@ router.get("/config", async (req, res) => {
       google: {
         client_id: config?.getConfigValue('social.google.client_id')
       }
-    }
+    },
+    models: await Token.getChatModels()
   }));
 });
 

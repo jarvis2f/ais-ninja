@@ -35,46 +35,13 @@ const configStore = create<ConfigState>()(
 			notifications: [],
 			shop_introduce: '',
 			user_introduce: '',
-			models: [
-				{
-					label: 'GPT-3.5',
-					value: 'gpt-3.5-turbo'
-				},
-				{
-					label: 'GPT-3.5-0613',
-					value: 'gpt-3.5-turbo-0613'
-				},
-				{
-					label: 'GPT-4',
-					value: 'gpt-4'
-				}
-				// {
-				//   label: 'GPT-4-0314',
-				//   value: 'gpt-4-0314'
-				// },
-				// {
-				//   label: 'GPT-4-32k',
-				//   value: 'gpt-4-32k'
-				// },
-				// {
-				//   label: 'TEXT-002',
-				//   value: 'text-davinci-002'
-				// },
-				// {
-				//   label: 'TEXT-003',
-				//   value: 'text-davinci-003'
-				// },
-				// {
-				//   label: 'CODE-002',
-				//   value: 'code-davinci-002'
-				// }
-			],
+			models: [],
 			config: {
 				model: 'gpt-3.5-turbo',
 				temperature: 0,
 				presence_penalty: 0,
 				frequency_penalty: 0,
-				max_tokens: 1888
+				max_tokens: 1888,
 			},
 			setConfigModal: (value) => set({configModal: value}),
 			changeConfig: (config) =>

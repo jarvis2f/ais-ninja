@@ -1,0 +1,30 @@
+{
+  "name": "DuckDuckGo",
+  "avatar": "https://duckduckgo.com/assets/logo_header.v109.svg",
+  "functions": [
+    {
+      "name": "search",
+      "description": "Search web info use DuckDuckGo",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "What to search for"
+          },
+          "region": {
+            "type": "string",
+            "description": "Region to search in, e.g. us-en, default is zh-cn"
+          },
+          "page": {
+            "type": "integer",
+            "description": "Page number, default is 1"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    }
+  ]
+}
