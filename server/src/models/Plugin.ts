@@ -10,11 +10,12 @@ interface PluginAttributes {
   avatar?: string;
   creator_id?: number;
   status: number;
+  variables: string;
   create_time: Date;
   update_time: Date;
 }
 
-interface PluginCreationAttributes extends Optional<PluginAttributes, 'id' | 'description' | 'avatar'> {
+interface PluginCreationAttributes extends Optional<PluginAttributes, 'id' | 'description' | 'avatar' | 'variables'> {
 }
 
 @Table({
@@ -64,6 +65,11 @@ class Plugin extends Model<PluginAttributes, PluginCreationAttributes> implement
     defaultValue: 0
   })
   public status!: number;
+  @Column({
+    type: DataTypes.TEXT,
+    allowNull: true,
+  })
+  public variables!: string;
   @Column({
     type: DataTypes.DATE,
     allowNull: false,

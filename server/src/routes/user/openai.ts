@@ -22,7 +22,7 @@ import {ChatCompletionRequestMessage} from "openai/api";
 const router = Router();
 const logger = getLogger('routes:user:openai');
 
-router.post('/chat/completions', async (req, res, next) => {
+router.post('/chat/completions', async (req, res) => {
   const user_id = req?.user_id;
   if (!user_id) {
     res.json(ApiResponse.miss());
@@ -147,7 +147,7 @@ router.post('/chat/completions', async (req, res, next) => {
 
 });
 
-router.post('/images/generations', async (req, res, next) => {
+router.post('/images/generations', async (req, res) => {
   const user_id = req?.user_id;
   if (!user_id) {
     res.json(ApiResponse.miss());
@@ -205,7 +205,7 @@ router.post('/images/generations', async (req, res, next) => {
   res.json(ApiResponse.success(response.data?.data));
 })
 
-router.get('/plugins', async (req, res, next) => {
+router.get('/plugins', async (req, res) => {
   const user_id = req?.user_id;
   if (!user_id) {
     res.json(ApiResponse.miss());
@@ -268,7 +268,7 @@ router.get('/plugins', async (req, res, next) => {
   }));
 })
 
-router.get('/plugin/:id', async (req, res, next) => {
+router.get('/plugin/:id', async (req, res) => {
   const {id} = req.params;
   if (!id) {
     res.json(ApiResponse.miss());
@@ -303,11 +303,12 @@ router.get('/plugin/:id', async (req, res, next) => {
   });
   res.json(ApiResponse.success({
     ...plugin?.toJSON(),
+    variables: user_id === plugin?.get('creator_id') ? JSON.parse(plugin?.get('variables') || '[]') : [],
     installed: ((plugin?.get('installed') as number || 0) > 0) as boolean,
   }));
 })
 
-router.post('/plugin/:id/release', async (req, res, next) => {
+router.post('/plugin/:id/release', async (req, res) => {
   const user_id = req?.user_id;
   const {id} = req.params;
   if (!user_id || !id) {
@@ -329,7 +330,7 @@ router.post('/plugin/:id/release', async (req, res, next) => {
   res.json(ApiResponse.success());
 })
 
-router.post('/plugin/:id/install', async (req, res, next) => {
+router.post('/plugin/:id/install', async (req, res) => {
   const user_id = req?.user_id;
   const {id} = req.params;
   if (!user_id || !id) {
@@ -355,7 +356,7 @@ router.post('/plugin/:id/install', async (req, res, next) => {
   res.json(ApiResponse.success());
 });
 
-router.post('/plugin/:id/uninstall', async (req, res, next) => {
+router.post('/plugin/:id/uninstall', async (req, res) => {
   const user_id = req?.user_id;
   const {id} = req.params;
   if (!user_id || !id) {
@@ -381,7 +382,7 @@ router.post('/plugin/:id/uninstall', async (req, res, next) => {
   res.json(ApiResponse.success());
 })
 
-router.post('/plugin', async (req, res, next) => {
+router.post('/plugin', async (req, res) => {
   const user_id = req?.user_id;
   if (!user_id) {
     res.json(ApiResponse.miss());
@@ -392,17 +393,22 @@ router.post('/plugin', async (req, res, next) => {
     res.json(ApiResponse.miss());
     return;
   }
+  const variables = req.body.variables?.map((variable: any) => {
+    delete variable.id;
+    return variable;
+  });
   const plugin = await Plugin.create({
     name,
     description,
     avatar,
-    creator_id: user_id
+    creator_id: user_id,
+    variables: variables? JSON.stringify(variables) : "",
   } as Plugin);
 
   res.json(ApiResponse.success(plugin));
 })
 
-router.put('/plugin/:id', async (req, res, next) => {
+router.put('/plugin/:id', async (req, res) => {
   const user_id = req?.user_id;
   const {id} = req.params;
   if (!user_id || !id) {
@@ -419,16 +425,21 @@ router.put('/plugin/:id', async (req, res, next) => {
     res.json(ApiResponse.miss());
     return;
   }
+  const variables = req.body.variables?.map((variable: any) => {
+    delete variable.id;
+    return variable;
+  });
   await plugin.update({
     name,
     description,
     avatar,
+    variables: variables? JSON.stringify(variables) : "",
   } as Plugin);
 
   res.json(ApiResponse.success(plugin));
 })
 
-router.delete('/plugin/:id', async (req, res, next) => {
+router.delete('/plugin/:id', async (req, res) => {
   const user_id = req?.user_id;
   const {id} = req.params;
   if (!user_id || !id) {
@@ -444,7 +455,7 @@ router.delete('/plugin/:id', async (req, res, next) => {
   res.json(ApiResponse.success());
 })
 
-router.post('/plugin/:id/function', async (req, res, next) => {
+router.post('/plugin/:id/function', async (req, res) => {
   const user_id = req?.user_id;
   const {id} = req.params;
   if (!user_id || !id) {
@@ -471,7 +482,7 @@ router.post('/plugin/:id/function', async (req, res, next) => {
   res.json(ApiResponse.success(func));
 })
 
-router.put('/plugin/:id/function/:function_id', async (req, res, next) => {
+router.put('/plugin/:id/function/:function_id', async (req, res) => {
   const user_id = req?.user_id;
   const {id, function_id} = req.params;
   if (!user_id || !id || !function_id) {
@@ -502,7 +513,7 @@ router.put('/plugin/:id/function/:function_id', async (req, res, next) => {
   res.json(ApiResponse.success(func));
 })
 
-router.delete('/plugin/:id/function/:function_id', async (req, res, next) => {
+router.delete('/plugin/:id/function/:function_id', async (req, res) => {
   const user_id = req?.user_id;
   const {id, function_id} = req.params;
   if (!user_id || !id || !function_id) {

@@ -13,6 +13,7 @@ const logger = getLogger('plugins');
 
 interface Options {
   debug?: boolean;
+  env?: { [key: string]: string };
   log?: (...args: any[]) => void;
 }
 
@@ -30,6 +31,7 @@ export function createPlugin(script: string, options: Options) {
       external: available_modules,
       root: PLUGINS_MODULE_DIR,
     },
+    env: options.env,
     wrapper: 'commonjs',
   });
 

@@ -1,9 +1,21 @@
 import {createPlugin, installModule, installModuleIfNeeded, PLUGINS_MODULE_DIR} from "../../../src/chatgpt/plugins";
 import * as path from 'path';
 
+test('Test VM process.env is defined', async () => {
+  await createPlugin(`
+function test_env() {
+  return process.env.a;
+}
+  `, {debug: true, log: console.log, env: {a: 'b'}})
+    .run('test_env')
+    .then((result) => {
+      expect(result).toBe('b');
+    });
+})
+
 test('Execute simple plugin code', async () => {
   await installModuleIfNeeded('pinyin');
-  createPlugin(`
+  await createPlugin(`
 const pinyin_lib = require("pinyin");
 async function toPinyin({text, text2}) {
     const p1 = pinyin_lib.pinyin(text, {

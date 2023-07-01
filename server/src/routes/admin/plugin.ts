@@ -8,11 +8,12 @@ import simpleGit from "simple-git";
 import {Plugin} from "../../models/Plugin";
 import {Functions} from "../../models/Functions";
 import {getLogger} from "../../utils/logger";
+import {sequelize} from "../../config/db";
 
 const router = Router();
 const logger = getLogger('admin/plugin');
 
-router.post('/import', async (req, res, next) => {
+router.post('/import', async (req, res) => {
   const {url} = req.body;
   if (!url) {
     res.json(ApiResponse.miss());
@@ -45,55 +46,102 @@ router.post('/import', async (req, res, next) => {
     .filter((dirent) => dirent.isDirectory())
     .map((dirent) => dirent.name);
 
+  const t = await sequelize!.transaction();
   const plugins: Plugin[] = [];
-  for (const pluginDir of pluginDirs) {
-    const pluginPath = path.join(pluginsPath, pluginDir);
-    const pluginFiles = await readPluginFiles(pluginPath);
+  try {
+    for (const pluginDir of pluginDirs) {
+      const pluginPath = path.join(pluginsPath, pluginDir);
+      const pluginFiles = await readPluginFiles(pluginPath);
 
-    if (!pluginFiles.desc || !pluginFiles.index || !pluginFiles.pluginJson) {
-      logger.warn(`Incomplete files for plugin: ${pluginDir}`);
-    }
+      if (!pluginFiles.desc || !pluginFiles.index || !pluginFiles.pluginJson) {
+        logger.warn(`Incomplete files for plugin: ${pluginDir}`);
+      }
 
-    const pluginJson = JSON.parse(pluginFiles.pluginJson as string);
+      const pluginJson = JSON.parse(pluginFiles.pluginJson as string);
 
-    let functions = pluginJson.functions
-      .filter((func: any) => {
-        if (!func.name || !func.description || !func.parameters) {
-          logger.warn(`Incomplete function for plugin: ${pluginDir}`);
-          return false;
-        }
-        return true;
-      })
-      .map((func: any) => {
-        return {
-          name: func.name,
-          description: func.description,
-          parameters: JSON.stringify(func.parameters),
-          script: pluginFiles.index as string,
-        }
+      let functions = pluginJson.functions
+        .filter((func: any) => {
+          if (!func.name || !func.description || !func.parameters) {
+            logger.warn(`Incomplete function for plugin: ${pluginDir}`);
+            return false;
+          }
+          return true;
+        })
+        .map((func: any) => {
+          return {
+            name: func.name,
+            description: func.description,
+            parameters: JSON.stringify(func.parameters),
+            script: pluginFiles.index as string,
+          }
+        });
+
+      // Check if the plugin already exists based on the name field
+      const existingPlugin = await Plugin.findOne({
+        where: {name: pluginJson.name},
+        include: [{model: Functions, as: 'functions'}],
+        transaction: t,
       });
 
-    plugins.push({
-      name: pluginJson?.name,
-      description: pluginFiles.desc as string,
-      avatar: pluginJson?.avatar,
-      creator_id: 10000,
-      status: 1,
-      functions:functions
-    } as Plugin);
+      let variables: { name: string, value: string }[] = [];
+      if (pluginJson.variables) {
+        variables = Object.keys(pluginJson.variables).map((key) => {
+          return {
+            name: key,
+            value: pluginJson.variables[key],
+          }
+        });
+      }
+
+      if (existingPlugin) {
+        // Update existing plugin
+        existingPlugin.description = pluginFiles.desc as string;
+        existingPlugin.avatar = pluginJson.avatar;
+        existingPlugin.functions = functions.map((func: any) => ({
+          name: func.name,
+          description: func.description,
+          parameters: func.parameters,
+          script: func.script,
+        }));
+        const origin_variables = JSON.parse(existingPlugin.variables) as { name: string, value: string }[];
+        variables.forEach((variable) => {
+          const origin_variable = origin_variables.find((v) => v.name === variable.name);
+          if (!origin_variable) {
+            origin_variables.push(variable);
+          }
+        });
+        existingPlugin.variables = JSON.stringify(origin_variables);
+        await existingPlugin.save({transaction: t});
+        plugins.push(existingPlugin);
+      } else {
+        // Insert new plugin
+        const newPlugin = await Plugin.create({
+          name: pluginJson.name,
+          description: pluginFiles.desc as string,
+          avatar: pluginJson.avatar,
+          creator_id: 10000,
+          status: 1,
+          variables: JSON.stringify(variables),
+          functions: functions,
+        } as Plugin, {
+          include: [{model: Functions, as: 'functions'}],
+          transaction: t,
+        });
+        plugins.push(newPlugin);
+      }
+    }
+
+    await t.commit();
+
+    logger.info(`plugins count: ${plugins.length}`);
+    logger.debug(`plugins: ${JSON.stringify(plugins)}`)
+
+    res.json(ApiResponse.success({}, req.t(`导入成功`)));
+  } catch (error) {
+    await t.rollback(); // Rollback the transaction in case of an error
+    logger.error(`Transaction failed: ${error}`);
+    res.json(ApiResponse.error(500, req.t(`导入失败`)));
   }
-
-  await Plugin.bulkCreate(plugins, {
-    include: [{
-      model: Functions,
-      as: 'functions'
-    }]
-  });
-
-  logger.info(`plugins count: ${plugins.length}`);
-  logger.debug(`plugins: ${JSON.stringify(plugins)}`)
-
-  res.json(ApiResponse.success({}, req.t(`导入成功`)));
 })
 
 async function readPluginFiles(pluginPath: string) {

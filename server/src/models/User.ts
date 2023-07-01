@@ -172,11 +172,11 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
     return User.findByPk(user.id!);
   }
 
-  public static async initAdministator(): Promise<{account: string, password: string} | boolean> {
+  public static async initAdministrator(): Promise<{account: string, password: string} | boolean> {
     if (await User.findOne({where: {role: 'administrator'}})) {
       return false;
     }
-    const password = utils.random_string(8);
+    const password = utils.random_string(8) + '1';
     let user: UserCreationAttributes = {
       nickname: 'Admin',
       account: 'admin_' + utils.random_string(4),

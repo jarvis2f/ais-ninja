@@ -1,5 +1,5 @@
 import styles from './index.module.less';
-import {ProForm} from '@ant-design/pro-components';
+import {EditableProTable, ProColumns, ProForm} from '@ant-design/pro-components';
 import {Button, Form, Input, Menu, message, Popconfirm, Space, Spin, Tooltip} from 'antd';
 import React, {useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
@@ -22,7 +22,7 @@ import {
 	putPluginFunction
 } from '@/request/api';
 import CodeInput from '@/components/CodeInput';
-import {FunctionInfo, PluginInfo} from '@/types';
+import {FunctionInfo, PluginInfo, VariableInfo} from '@/types';
 import {MenuItemType} from 'antd/es/menu/hooks/useItems';
 import {generateUUID, joinTrim} from '@/utils';
 import useDocumentResize from '@/hooks/useDocumentResize';
@@ -41,6 +41,8 @@ function PluginEdit() {
 	const [newFunctionNo, setNewFunctionNo] = useState<number>(0);
 	const [pluginForm] = Form.useForm<PluginInfo>();
 	const [pluginFunctionForm] = Form.useForm<FunctionInfo>();
+	const [editableKeys, setEditableRowKeys] = useState<React.Key[]>(() =>
+		plugin.variables?.map(item => item.id) || []);
 
 	useEffect(() => {
 		setMenuCollapsed(documentResize.width < 768);
@@ -266,6 +268,12 @@ function PluginEdit() {
 				avatar: changedValues.avatar || '',
 			}));
 		}
+		if ('variables' in changedValues) {
+			setPlugin(prevPlugin => ({
+				...prevPlugin,
+				variables: changedValues.variables || [],
+			}));
+		}
 	};
 
 	const handlePluginFunctionFormValuesChange = (changedValues: Partial<FunctionInfo>) => {
@@ -308,6 +316,57 @@ function PluginEdit() {
 		setEditPlugin(false);
 	}
 
+	const variables_columns: ProColumns<VariableInfo>[] = [
+		{
+			title: t('变量名'),
+			dataIndex: 'name',
+			formItemProps: () => {
+				return {
+					rules: [{required: true, message: '此项为必填项'}],
+				};
+			},
+			width: '40%',
+		},
+		{
+			title: t('变量值'),
+			dataIndex: 'value',
+			formItemProps: () => {
+				return {
+					rules: [{required: true, message: '此项为必填项'}],
+				};
+			},
+			width: '40%',
+		},
+		{
+			title: t('操作'),
+			valueType: 'option',
+			width: 200,
+			render: (text, record, _, action) => [
+				<a
+					key="editable"
+					onClick={() => {
+						action?.startEditable?.(record.id);
+					}}
+				>
+					编辑
+				</a>,
+				<a
+					key="delete"
+					onClick={() => {
+						const variableInfos = pluginForm.getFieldValue(
+							'variables',
+						) as VariableInfo[];
+						pluginForm.setFieldsValue({
+							variables: variableInfos.filter((item) => item.id !== record.id),
+						});
+					}}
+				>
+					删除
+				</a>,
+			],
+		},
+	];
+
 	return (
 		<Spin spinning={spinning}>
 			<div className={styles.plugin_edit}>
@@ -342,19 +401,51 @@ function PluginEdit() {
 				])}
 				>
 					{editPlugin && (
-						<ProForm form={pluginForm} onFinish={handlePluginFormFinish}
-								 onValuesChange={handlePluginFormValuesChange}>
+						<ProForm
+							form={pluginForm}
+							onFinish={handlePluginFormFinish}
+							onValuesChange={handlePluginFormValuesChange}>
 							<ProForm.Item name="name" label={t('插件名称')} required
 										  rules={[{required: true}, {max: 64}]}>
-								<Input placeholder="插件的名称" maxLength={64}/>
+								<Input placeholder="The name of the plugin" maxLength={64}/>
 							</ProForm.Item>
 							<ProForm.Item name="avatar" label={t('插件头像')}
 										  rules={[{max: 255}, {pattern: /^(https?|ftp):\/\//i}]}>
-								<Input placeholder="插件头像Url" maxLength={255}/>
+								<Input placeholder="Plugin avatar url" maxLength={255}/>
 							</ProForm.Item>
 							<ProForm.Item name="description" label={t('插件描述')} required rules={[{required: true}]}>
-								<CodeInput height="400px" placeholder="描述这个插件可以干什么，支持Markdown"
+								<CodeInput height="400px" placeholder="Describe what this plugin can do, support Markdown syntax"
 										   language="markdown"/>
+							</ProForm.Item>
+							<ProForm.Item
+								label={t('插件变量')}
+								name="variables"
+								trigger="onValuesChange"
+							>
+								<EditableProTable<VariableInfo>
+									rowKey="id"
+									toolBarRender={false}
+									maxLength={20}
+									columns={variables_columns}
+									recordCreatorProps={{
+										newRecordType: 'dataSource',
+										position: 'bottom',
+										creatorButtonText: t('添加变量'),
+										record: () => ({
+											id: Date.now(),
+											name: '',
+											value: '',
+										}),
+									}}
+									editable={{
+										type: 'multiple',
+										editableKeys,
+										onChange: setEditableRowKeys,
+										actionRender: (row, _, dom) => {
+										  return [dom.delete];
+										},
+									}}
+								/>
 							</ProForm.Item>
 						</ProForm>
 					)}

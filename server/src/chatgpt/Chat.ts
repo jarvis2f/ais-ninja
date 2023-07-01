@@ -7,7 +7,6 @@ import {getRandomClient} from "./index";
 import {createPlugin} from "./plugins";
 import {Plugin} from "../models/Plugin";
 import utils from "../utils";
-import ApiResponse from "../utils/response";
 import {randomUUID} from "crypto";
 
 const logger = getLogger("openai");
@@ -211,8 +210,15 @@ export class Chat {
       },
     });
     try {
+      let variables: { [key: string]: string } = {};
+      if (plugin.variables && plugin.variables !== '') {
+        JSON.parse(plugin.variables).forEach((variable: { name: string; value: string }) => {
+          variables[variable.name] = variable.value;
+        });
+      }
       const function_response = await createPlugin(func!.script, {
         debug: this.debug,
+        env: variables,
         log: (...args: any[]) => {
           logger.debug(`Plugin log：${args.join(' ')}`);
           this.res_function_log(call_id, 'function_log', args.join(' '));

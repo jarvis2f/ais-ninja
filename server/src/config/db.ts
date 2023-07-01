@@ -78,7 +78,7 @@ async function sync() {
     })(),
   }).then(() => {
     logger.info('Database synced');
-    User.initAdministator().then((initialized) => {
+    User.initAdministrator().then((initialized) => {
       if (initialized) {
         let admin = initialized as {account: string, password: string};
         logger.info(`Administrator initialized: ${admin.account} \ ${admin.password}`);

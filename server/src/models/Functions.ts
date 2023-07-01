@@ -48,7 +48,7 @@ class Functions extends Model<FunctionsAttributes, FunctionsCreationAttributes> 
   })
   public description!: string;
   @Column({
-    type: DataTypes.STRING(255),
+    type: DataTypes.TEXT,
     allowNull: false,
   })
   public parameters!: string;
