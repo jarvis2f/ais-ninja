@@ -1,6 +1,9 @@
 {
   "name": "心知天气",
   "avatar": "https://static.sencdn.com/brand/logo/logo-red-text-gray-2x.png",
+  "variables": {
+    "SENIVERSE_API_KEY": "Your API Key"
+  },
   "functions": [
     {
       "name": "search_weather",
