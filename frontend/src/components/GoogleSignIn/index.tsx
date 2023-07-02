@@ -25,7 +25,6 @@ export function GoogleSignIn(props: {
 		document.body.appendChild(script);
 
 		window.handleCredentialResponse = (response) => {
-			console.log(response)
 			new Promise((resolve, reject) => {
 				userAsync
 					.fetchSocialLogin({

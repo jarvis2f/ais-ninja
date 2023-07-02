@@ -78,10 +78,11 @@ export class Chat {
         let data: any;
         try {
           data = JSON.parse(chunk.toString());
+          data = data.error?.message;
         } catch (e) {
           data = chunk.toString();
         }
-        this.res_write(data);
+        self.res_error(data);
         callback();
       }
     });
