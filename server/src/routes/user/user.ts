@@ -344,7 +344,7 @@ router.post('/pay/precreate', async (req, res) => {
     pay_type
   };
   const ip:string = utils.getClientIP(req);
-  const notifyUrl = `https://api.ais.ninja/api/pay/notify?channel=${paymentInfo.channel}`;
+  const notifyUrl = `https://${req.get('host')?.split(':')[0]}/api/pay/notify?channel=${paymentInfo.channel}`;
   const amount = product.price / 100;
   const paymentParams = JSON.parse(paymentInfo.params);
   const paramsStringify = JSON.stringify({
