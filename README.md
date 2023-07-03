@@ -34,7 +34,7 @@ docker run -d \
     -e EMAIL_AUTH_PASS=     \
     -e SOCIAL_GOOGLE_CLIENT_ID=     \
     -e VITE_APP_REQUEST_HOST=     \
-    jarvis2f/ais-ninja:1.0.0
+    jarvis2f/ais-ninja:v1.0.0
 ```
 
 ### docker-compose
@@ -50,7 +50,7 @@ docker run -d \
 3. 修改 `docker-compose.yml` 中的环境变量
 4. 运行 `docker-compose up -d` 启动服务
 
-运行 `docker logs ais-ninja-app` 查看日子。如果看到如下日志，则说明服务启动成功。首次启动会生成默认管理员帐户和密码。
+运行 `docker logs ais-ninja-app` 查看日志。如果看到如下日志，则说明服务启动成功。首次启动会生成默认管理员帐户和密码。
 
 ```shell
 [12:47:52.887] INFO (43): Logger initialized: info

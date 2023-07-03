@@ -57,35 +57,47 @@ function getRandomClient(model: string): [Token, OpenAIApi] {
 
 export const available_models = [
   {
-    label: 'GPT-3.5',
+    label: 'gpt-3.5-turbo',
     value: 'gpt-3.5-turbo'
   },
   {
-    label: 'GPT-3.5-0613',
+    label: 'gpt-3.5-turbo-16k',
+    value: 'gpt-3.5-turbo-16k'
+  },
+  {
+    label: 'gpt-3.5-turbo-0613',
     value: 'gpt-3.5-turbo-0613'
   },
   {
-    label: 'GPT-4',
+    label: 'gpt-3.5-turbo-16k-0613',
+    value: 'gpt-3.5-turbo-16k-0613'
+  },
+  {
+    label: 'gpt-4',
     value: 'gpt-4'
   },
   {
-    label: 'GPT-4-0314',
-    value: 'gpt-4-0314'
+    label: 'gpt-4-0613',
+    value: 'gpt-4-0613'
   },
   {
-    label: 'GPT-4-32k',
+    label: 'gpt-4-32k-0613',
+    value: 'gpt-4-32k-0613'
+  },
+  {
+    label: 'gpt-4-32k',
     value: 'gpt-4-32k'
   },
   {
-    label: 'TEXT-002',
-    value: 'text-davinci-002'
-  },
-  {
-    label: 'TEXT-003',
+    label: 'text-davinci-003',
     value: 'text-davinci-003'
   },
   {
-    label: 'CODE-002',
+    label: 'text-davinci-002',
+    value: 'text-davinci-002'
+  },
+  {
+    label: 'code-davinci-002',
     value: 'code-davinci-002'
   }
 ];

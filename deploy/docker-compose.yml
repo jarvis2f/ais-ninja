@@ -25,7 +25,7 @@ services:
       - ais-ninja
 
   app:
-    image: jarvis2f/ais-ninja:1.0.0
+    image: jarvis2f/ais-ninja:v1.0.0
     restart: always
     container_name: ais-ninja-app
     environment:
