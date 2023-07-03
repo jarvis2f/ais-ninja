@@ -160,7 +160,7 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
       account: account,
       avatar: picture || 'https://s1.imgcap.xyz/bcc944df79b3a1f86cd5d6d5eb58485d.png',
       integral: register_reward,
-      password: User.encryPassword(password),
+      password: User.encryPassword(password ? password : utils.random_string(8) + '1'),
       role: 'user',
       ip: ip,
       vip_expire_time: dayjs().startOf('day').toDate(),

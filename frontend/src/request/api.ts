@@ -14,6 +14,7 @@ import {
 } from '@/types'
 import request from '.'
 import {TableData} from "@/types/admin";
+import {generateUUID} from "@/utils";
 
 // 获取验证码
 export function getCode(params: { source: string }) {
@@ -126,7 +127,7 @@ export function getPlugins(params: { page: number; page_size: number, type: stri
 export function getPlugin(id: string) {
   return request.get<PluginInfo>(`/api/u/plugin/${id}`).then(res => {
 	  res.data?.variables?.forEach(item => {
-		  item.id = Date.now()
+		  item.id = generateUUID()
 	  })
 	  return res
   })

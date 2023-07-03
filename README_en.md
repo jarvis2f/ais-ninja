@@ -2,6 +2,8 @@
 
 ## Introduction
 
+![intro_en.gif](doc%2Fintro_en.gif)
+
 ais-ninja is a chatgpt based web application. It is based on the [ChatGpt-Web](https://github.com/79E/ChatGpt-Web).
 
 * Refactored the server code.

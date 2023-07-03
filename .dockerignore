@@ -13,3 +13,4 @@ plugins
 .run
 *.iml
 
+./doc/

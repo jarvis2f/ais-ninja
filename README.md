@@ -4,6 +4,8 @@
 
 ## 介绍
 
+![intro.gif](doc%2Fintro.gif)
+
 ais-ninja 是一个基于 chatgpt 的 Web 应用程序。它基于 [ChatGpt-Web](https://github.com/79E/ChatGpt-Web).
 
 * 重构了后端代码。
