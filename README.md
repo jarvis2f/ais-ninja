@@ -27,7 +27,7 @@ docker run -d \
     -e DATABASE_HOST=host     \
     -e DATABASE_USER=root     \
     -e DATABASE_PASSWORD=123456     \
-    -e DATABASE_SYNC=true     \
+    -e DATABASE_SYNC='true'     \
     -e REDIS_URL=redis://${url}:6379/0     \
     -e EMAIL_HOST=smtp.office365.com     \
     -e EMAIL_PORT=587     \
