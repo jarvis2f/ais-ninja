@@ -1,0 +1,25 @@
+{
+  "name": "baidu-search",
+  "avatar": "https://www.baidu.com/favicon.ico",
+  "variables": {
+    "BAIDU_COOKIE": "BAIDU_COOKIE"
+  },
+  "functions": [
+    {
+      "name": "search",
+      "description": "Search web info use baidu",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "What to search for"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    }
+  ]
+}
