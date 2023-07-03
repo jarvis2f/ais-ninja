@@ -50,8 +50,8 @@ docker run -d \
 3. Modify the environment variables in the `docker-compose.yml` file.
 4. Run `docker-compose up -d` to start the service.
 
-
-Run `docker logs ais-ninja-app` to view the log.If you see the following log, it means that the service is started successfully. First time start will generate a default administrator account.
+Run `docker logs ais-ninja-app` to view the log.If you see the following log, it means that the service is started
+successfully. First time start will generate a default administrator account.
 
 ```shell
 [12:47:52.887] INFO (43): Logger initialized: info
@@ -71,13 +71,12 @@ admin address：`http://localhost:6789/admin`
 
 > Most configuration items in this project are set through environment variables.
 >
-> You can also modify the `config.json` file to set the environment variables. Then run `docker run -d --name ais-ninja -v /path/to/config.json:/app/server/config.json jarvis2f/ais-ninja:1.0.0` to start the service.
+> You can also modify the `config.json` file to set the environment variables. Then
+> run `docker run -d --name ais-ninja -v /path/to/config.json:/app/server/config.json jarvis2f/ais-ninja:1.0.0` to start
+> the service.
 
 | Environment Variable      | Description                                                                    |
 |---------------------------|--------------------------------------------------------------------------------|
-| `VITE_APP_REQUEST_HOST`   | Request the `Host` address of the server.                                      |
-| `VITE_APP_TITLE`          | Chat Web title.                                                                |
-| `VITE_APP_LOGO`           | Chat Web Logo。                                                                 |
 | `DATABASE_NAME`           | Database name.                                                                 |
 | `DATABASE_PORT`           | Database port.                                                                 |
 | `DATABASE_HOST`           | Database host.                                                                 |
@@ -94,40 +93,42 @@ admin address：`http://localhost:6789/admin`
 
 ## ChatGPT Plugin
 
-After the project starts, you can go to the admin -> Fill in the warehouse address in the system configuration：`https://github.com/jarvis2f/ais-ninja.git` Import the plugins under [plugins](./plugins) in this warehouse.
+After the project starts, you can go to the admin -> Fill in the warehouse address in the system
+configuration：`https://github.com/jarvis2f/ais-ninja.git` Import the plugins under [plugins](./plugins) in this
+warehouse.
 
 ### Create a chat plugin
 
 You can first look at OpenAI's[文档](https://platform.openai.com/docs/guides/gpt/function-calling)。
-In the dialog, the method in the plugin will be passed to the ChatGPT interface in the following format, 
+In the dialog, the method in the plugin will be passed to the ChatGPT interface in the following format,
 and ChatGPT will return the plugin method name and parameters that need to be called.
 
 ```json
 {
-   "functions": [
-      {
-         "name": "search_weather",
-         "description": "Query china real time weather information from seniverse.com",
-         "parameters": {
-            "type": "object",
-            "properties": {
-               "location": {
-                  "type": "string",
-                  "description": "China Pinyin Location name, e.g. beijing"
-               }
-            },
-            "required": [
-               "location"
-            ]
-         }
+  "functions": [
+    {
+      "name": "search_weather",
+      "description": "Query china real time weather information from seniverse.com",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "China Pinyin Location name, e.g. beijing"
+          }
+        },
+        "required": [
+          "location"
+        ]
       }
-   ]
+    }
+  ]
 }
 ```
 
-A plugin in the system can have multiple functions. 
-After installing a plugin, the user will pass all the functions in the plugin to ChatGPT. 
-Plugins are written in JavaScript, you can refer to the code in [plugins](./plugins). 
+A plugin in the system can have multiple functions.
+After installing a plugin, the user will pass all the functions in the plugin to ChatGPT.
+Plugins are written in JavaScript, you can refer to the code in [plugins](./plugins).
 Available libraries:
 
 * [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch) Make a network request
@@ -142,17 +143,18 @@ Available libraries:
 
 ### Plugin Variables
 
-Some private keys can be set as plugin variables so that they will not be exposed in the code. 
+Some private keys can be set as plugin variables so that they will not be exposed in the code.
 Define variables in the variables field in plugin.json.
 
 ```json
 {
-   "name": "weather",
-   "description": "Query china real time weather information from seniverse.com",
-   "variables": {
-      "SENIVERSE_KEY": "Your API Key"
-   }
+  "name": "weather",
+  "description": "Query china real time weather information from seniverse.com",
+  "variables": {
+    "SENIVERSE_KEY": "Your API Key"
+  }
 }
 ```
 
-Write the variable save in the front-end plugin editor, and then you can use `process.env.SENIVERSE_KEY` to get the variable in the code.
+Write the variable save in the front-end plugin editor, and then you can use `process.env.SENIVERSE_KEY` to get the
+variable in the code.

@@ -78,9 +78,6 @@ docker run -d \
 
 | Environment Variable      | Description                                                               |
 |---------------------------|---------------------------------------------------------------------------|
-| `VITE_APP_REQUEST_HOST`   | 服务端接口地址                                                                   |
-| `VITE_APP_TITLE`          | 网页标题                                                                      |
-| `VITE_APP_LOGO`           | 网页Logo                                                                    |
 | `DATABASE_NAME`           | 数据库名称                                                                     |
 | `DATABASE_PORT`           | 数据库端口                                                                     |
 | `DATABASE_HOST`           | 数据库地址                                                                     |
@@ -97,7 +94,8 @@ docker run -d \
 
 ## 插件
 
-项目启动之后可以到后台 -> 系统配置中填写仓库地址：`https://github.com/jarvis2f/ais-ninja.git` 导入本仓库 [plugins](./plugins) 下的插件。
+项目启动之后可以到后台 -> 系统配置中填写仓库地址：`https://github.com/jarvis2f/ais-ninja.git`
+导入本仓库 [plugins](./plugins) 下的插件。
 
 ### 创建对话插件
 
@@ -106,24 +104,24 @@ docker run -d \
 
 ```json
 {
-   "functions": [
-      {
-         "name": "search_weather",
-         "description": "Query china real time weather information from seniverse.com",
-         "parameters": {
-            "type": "object",
-            "properties": {
-               "location": {
-                  "type": "string",
-                  "description": "China Pinyin Location name, e.g. beijing"
-               }
-            },
-            "required": [
-               "location"
-            ]
-         }
+  "functions": [
+    {
+      "name": "search_weather",
+      "description": "Query china real time weather information from seniverse.com",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "China Pinyin Location name, e.g. beijing"
+          }
+        },
+        "required": [
+          "location"
+        ]
       }
-   ]
+    }
+  ]
 }
 ```
 
@@ -147,11 +145,11 @@ docker run -d \
 
 ```json
 {
-   "name": "weather",
-   "description": "Query china real time weather information from seniverse.com",
-   "variables": {
-      "SENIVERSE_KEY": "Your API Key"
-   }
+  "name": "weather",
+  "description": "Query china real time weather information from seniverse.com",
+  "variables": {
+    "SENIVERSE_KEY": "Your API Key"
+  }
 }
 ```
 
