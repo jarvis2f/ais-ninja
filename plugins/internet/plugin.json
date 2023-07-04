@@ -2,7 +2,7 @@
   "name": "internet",
   "avatar": "https://ais.ninja/plugin/internet.svg",
   "variables": {
-    "CHROME_BIN": "Your chrome bin path, for example: /usr/bin/google-chrome"
+    "CHROME_BIN": "Your chrome bin path, for example: /usr/bin/chromium"
   },
   "functions": [
     {

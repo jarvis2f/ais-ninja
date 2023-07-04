@@ -1,0 +1,61 @@
+{
+  "name": "NewsData.io",
+  "avatar": "https://newsdata.io/images/global/newsdata-icon.png",
+  "variables": {
+    "API_KEY": "Your API Key"
+  },
+  "functions": [
+    {
+      "name": "search_latest_news",
+      "description": "Query latest news articles from NewsData.io",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": "string",
+            "description": "Search news articles for specific keywords or phrases"
+          },
+          "qInTitle": {
+            "type": "string",
+            "description": "Search news articles for specific keywords or phrases present in the news titles only"
+          },
+          "country": {
+            "type": "string",
+            "description": "Search the news articles from a specific country"
+          },
+          "category": {
+            "type": "string",
+            "description": "Search the news articles for a specific category"
+          },
+          "language": {
+            "type": "string",
+            "description": "Search the news articles for a specific language"
+          },
+          "domain": {
+            "type": "string",
+            "description": "Search the news articles for specific domains or news sources"
+          },
+          "full_content": {
+            "type": "boolean",
+            "description": "Get only those news articles which contain full content of the articles"
+          },
+          "image": {
+            "type": "boolean",
+            "description": "Get only those news articles which contain images"
+          },
+          "video": {
+            "type": "boolean",
+            "description": "Get only those news articles which contain videos"
+          },
+          "page": {
+            "type": "string",
+            "description": "Use page parameter to navigate to the next page"
+          }
+        },
+        "required": [
+          "q"
+        ]
+      }
+    }
+  ]
+}

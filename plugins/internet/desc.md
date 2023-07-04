@@ -1,8 +1,9 @@
 # Access web content via url
 
-当前通过 [puppeteer](https://pptr.dev/) 访问 url 的方式，然后提取所有的文本内容。
-会缺失很多信息，比如：
+The current way of accessing the url via [puppeteer](https:pptr.dev) and then extracting all the text content.
 
-- 图片、音频、视频
-- 链接
-- 样式
+A lot of information will be missing, such as:
+
+- picture, audio, video
+- link
+- style

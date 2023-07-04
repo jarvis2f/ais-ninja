@@ -84,12 +84,12 @@ export function LoginCard(props: {
 					size: 'large',
 					prefix: <RobotOutlined/>
 				}}
-				placeholder={t('邮箱')!}
+				placeholder={t('账号')!}
 				name="account"
 				rules={[
 					{
 						required: true,
-						message: t('请输入电子邮箱')!
+						message: t('请输入您的账号')!
 					}
 				]}
 			/>

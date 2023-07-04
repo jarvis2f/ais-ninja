@@ -61,6 +61,7 @@
 	"请输入有效的账号": "Please enter a valid account",
 	"请输入密码": "Please enter a password",
 	"8位及以上至少包含一个字母和一个数字": "At least 8 characters including at least one letter and one number",
+	"账号": "Account",
 	"邮箱": "Email",
 	"其他登录方式": "Connect with:",
 	"重置密码": "Reset password",

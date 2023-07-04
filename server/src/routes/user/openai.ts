@@ -16,7 +16,7 @@ import {RedemptionCodeTypeEnum} from "../../models/RedemptionCode";
 import {Turnover} from "../../models/Turnover";
 import {getLogger} from "../../utils/logger";
 import {GPTTokens} from "gpt-tokens";
-import {ChatCompletionRequestMessage} from "openai/api";
+import {ChatCompletionRequestMessage, CreateImageRequestSizeEnum} from "openai/api";
 
 
 const router = Router();
@@ -153,7 +153,8 @@ router.post('/images/generations', async (req, res) => {
     res.json(ApiResponse.miss());
     return;
   }
-  const {prompt, n = 1, size = '256x256', response_format = 'url'} = req.body;
+  const {prompt, n = 1, width = 256, height = 256, response_format = 'url'} = req.body;
+  const size = `${width}x${height}` as CreateImageRequestSizeEnum;
   const user = await User.findByPk(user_id).then(user => user?.toJSON()) as User;
   if (!user) {
     res.json(ApiResponse.miss());
