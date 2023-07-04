@@ -36,7 +36,7 @@ docker run -d \
     -e EMAIL_AUTH_PASS=     \
     -e SOCIAL_GOOGLE_CLIENT_ID=     \
     -e VITE_APP_REQUEST_HOST=     \
-    jarvis2f/ais-ninja:v1.0.0
+    jarvis2f/ais-ninja:v1.0.1
 ```
 
 ### docker-compose
