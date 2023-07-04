@@ -40,6 +40,7 @@ function ChatPage() {
 		clearChatMessage,
 		delChatMessage
 	} = chatStore()
+	const plugin_print = console;
 
 	useLayoutEffect(() => {
 		if (scrollRef) {
@@ -189,7 +190,7 @@ ${JSON.stringify(response, null, 4)}
 							status: segment === 'function_stop' ? 'finish' : (segment === 'function_error' ? 'error' : 'process'),
 						}],
 					})
-					if (plugin?.debug_info?.type) {
+					if (plugin?.debug_info?.type && debug) {
 						let log = plugin.debug_info.content;
 						if (typeof log === 'object') {
 							try {
@@ -197,8 +198,7 @@ ${JSON.stringify(response, null, 4)}
 							} catch (ignore) { /* empty */
 							}
 						}
-						if (debug)
-							console.log(`📣📣📣${plugin.debug_info.type} - [${plugin.name || ''}](${plugin.function?.name || ''})(${plugin.id})\n${log}`)
+						plugin_print.log(`📣📣📣${plugin.debug_info.type} - [${plugin.name || ''}](${plugin.function?.name || ''})(${plugin.id})\n${log}`)
 					}
 				}
 			}

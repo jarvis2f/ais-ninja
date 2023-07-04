@@ -91,7 +91,7 @@ function PluginList({type}: { type: string }) {
     <div className={styles.plugin_list}>
       <ProList
         pagination={{
-          pageSize: 10,
+          pageSize: 6,
           showSizeChanger: false,
           current: page,
           total: total,

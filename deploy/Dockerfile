@@ -15,6 +15,7 @@ FROM node:18-slim as app
 
 # 安装 nginx
 RUN apt-get update  \
+    && npm config set update-notifier false \
     && apt-get install -y nginx git gnupg wget \
     && apt-get install -y git \
     && wget --quiet --output-document=- https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /etc/apt/trusted.gpg.d/google-archive.gpg  \

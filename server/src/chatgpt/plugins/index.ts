@@ -139,7 +139,6 @@ export function initPlugin() {
   });
 }
 
-
 async function createCompletion(createCompletionRequest: CreateCompletionRequest): Promise<string> {
   const request = {
     ...createCompletionRequest,

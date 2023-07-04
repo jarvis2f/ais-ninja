@@ -135,6 +135,7 @@ Available libraries:
 * [dayjs](https://day.js.org/) time processing
 * [lodash](https://lodash.com/) Tool Library
 * [jsdom](https://github.com/jsdom/jsdom) manipulating the DOM
+* [puppeteer-core](https://www.npmjs.com/package/puppeteer-core) mock browser
 * ais Some functions provided by the ais_ninja system
    * ais.createCompletion Call OpenAI's Completion API
    * ais.createChatCompletion Call OpenAI's Chat Completion API

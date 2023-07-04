@@ -10,6 +10,7 @@ async function use_chrome(url) {
   try {
     const browser = await puppeteer.launch({
       executablePath: chrome_bin,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
       // headless: false,
       // devtools: true
     });
@@ -30,16 +31,6 @@ async function use_chrome(url) {
       const styles = Array.from(body.getElementsByTagName('style'));
       styles.forEach(style => style.remove());
 
-      // // 遍历body下的一级子节点，返回innerText
-      // const text_array = Array.from(body.childNodes).map(node => node.innerText);
-      // return Array.from(new Set(text_array
-      //   .filter(text => text && text.trim() !== '')
-      //   .map(text => {
-      //     // 去除多余的空白符
-      //     return text.replace(/\s+/g, ' ').trim();
-      //   })))
-      //   .join('\n');
-
       // 获取有文字内容或跳转链接的节点
       const textNodes = [];
       let nodes = Array.from(body.querySelectorAll('*'));
@@ -49,7 +40,6 @@ async function use_chrome(url) {
         const isSelfNode = Array.from(node.children).length === 0;
 
         if (isSelfNode && (hasText || hasLink)) {
-          debugger
           // 将node 上的除了 id、href 和 class 外的属性都去除
           const attributes = node.attributes;
           const attributesArray = Array.from(attributes);
@@ -93,17 +83,18 @@ async function use_chrome(url) {
 
     return result;
   } catch (error) {
-    console.error('Error accessing page:', error);
+    console.log('Error accessing page:', error);
     return 'cannot access page'
   }
 }
 
 async function access_internet({url: url, filter: filter}) {
   if (!url) return;
-  ais_progress(`Accessing: ${url}, and filtering the data according to the filter conditions: ${filter}`);
+  ais_progress(`Accessing: ${url}`);
+  ais_progress(`Filter: ${filter}`)
   try {
     let result = await use_chrome(url);
-
+    console.log(`result: ${JSON.stringify(result)}`);
     const body = result.body;
 
     if (filter) {

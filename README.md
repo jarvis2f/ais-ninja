@@ -133,6 +133,7 @@ docker run -d \
 * [dayjs](https://day.js.org/) 时间处理
 * [lodash](https://lodash.com/) 工具库
 * [jsdom](https://github.com/jsdom/jsdom) 操作 DOM
+* [puppeteer-core](https://www.npmjs.com/package/puppeteer-core) 模拟浏览器
 * ais ais_ninja 提供的一些函数
   * ais.createCompletion 调用 OpenAI 的 Completion API
   * ais.createChatCompletion 调用 OpenAI 的 Chat Completion API
