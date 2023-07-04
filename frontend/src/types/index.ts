@@ -123,6 +123,7 @@ export interface ChatPlugin {
 		name: string,
 		description: string,
 	},
+	progress?: string[],
 	debug_info?: {
 		type: 'log',
 		content: string | never,

@@ -143,7 +143,8 @@ const chatStore = create<ChatState>()(
                       return {
                         ...m,
                         ...info,
-                        plugins: mPlugins.map((p) => (p.id === plugin.id ? { ...p, ...plugin } : p)),
+                        plugins: mPlugins.map((p) => (p.id === plugin.id ?
+							{ ...p, ...plugin, progress: (p.progress || []).concat(plugin.progress) } : p)),
                       };
                     } else {
                       return {

@@ -1,0 +1,137 @@
+{
+  "name": "IMDB",
+  "avatar": "https://static.sencdn.com/brand/logo/logo-red-text-gray-2x.png",
+  "variables": {
+    "API_KEY": "Your API Key"
+  },
+  "functions": [
+    {
+      "name": "search",
+      "description": "Search for movies and series from IMDb API",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Movie title"
+          },
+          "titleType": {
+            "type": "string",
+            "description": "Title type"
+          },
+          "releaseDateFrom": {
+            "type": "string",
+            "description": "Release date from"
+          },
+          "releaseDateTo": {
+            "type": "string",
+            "description": "Release date to"
+          },
+          "userRatingFrom": {
+            "type": "number",
+            "description": "User rating from"
+          },
+          "userRatingTo": {
+            "type": "number",
+            "description": "User rating to"
+          },
+          "numberOfVotesFrom": {
+            "type": "number",
+            "description": "Number of votes from"
+          },
+          "numberOfVotesTo": {
+            "type": "number",
+            "description": "Number of votes to"
+          },
+          "genres": {
+            "type": "string",
+            "description": "Genres"
+          },
+          "titleGroups": {
+            "type": "string",
+            "description": "Title groups"
+          },
+          "titleData": {
+            "type": "string",
+            "description": "Title data"
+          },
+          "companies": {
+            "type": "string",
+            "description": "Companies"
+          },
+          "instantWatchOptions": {
+            "type": "string",
+            "description": "Instant watch options"
+          },
+          "usCertificates": {
+            "type": "string",
+            "description": "US certificates"
+          },
+          "colorInfo": {
+            "type": "string",
+            "description": "Color info"
+          },
+          "countries": {
+            "type": "string",
+            "description": "Countries"
+          },
+          "countriesStr": {
+            "type": "string",
+            "description": "Countries (string)"
+          },
+          "keyword": {
+            "type": "string",
+            "description": "Keyword"
+          },
+          "languages": {
+            "type": "string",
+            "description": "Languages"
+          },
+          "languagesStr": {
+            "type": "string",
+            "description": "Languages (string)"
+          },
+          "filmingLocations": {
+            "type": "string",
+            "description": "Filming locations"
+          },
+          "popularityFrom": {
+            "type": "number",
+            "description": "Popularity from"
+          },
+          "popularityTo": {
+            "type": "number",
+            "description": "Popularity to"
+          },
+          "plot": {
+            "type": "string",
+            "description": "Plot"
+          },
+          "runtimeFrom": {
+            "type": "number",
+            "description": "Runtime from"
+          },
+          "runtimeTo": {
+            "type": "number",
+            "description": "Runtime to"
+          },
+          "soundMix": {
+            "type": "string",
+            "description": "Sound mix"
+          },
+          "count": {
+            "type": "string",
+            "description": "Result count"
+          },
+          "sort": {
+            "type": "string",
+            "description": "Sort order"
+          },
+          "required": [
+            "location"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 async function search({query: query, region: region = 'zh-cn', page: page = 1}) {
   console.log("query", query)
   console.log("region", region)
+  ais_progress(`searching ${query}, region: ${region}`)
   try {
     const response = await fetch(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`);
     const html = await response.text();

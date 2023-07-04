@@ -1,6 +1,6 @@
 ## Search web info use baidu
 
-![intro.gif]('https://raw.githubusercontent.com/jarvis2f/ais-ninja/main/plugins/baidu-search/intro.gif')
+![baidu-search.gif](https://raw.githubusercontent.com/jarvis2f/ais-ninja/main/plugins/baidu-search/baidu-search.gif)
 
 ### process.env.BAIDU_COOKIE
 

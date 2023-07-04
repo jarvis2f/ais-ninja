@@ -132,6 +132,11 @@ docker run -d \
 * [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch) 发起网络请求
 * [dayjs](https://day.js.org/) 时间处理
 * [lodash](https://lodash.com/) 工具库
+* [jsdom](https://github.com/jsdom/jsdom) 操作 DOM
+* ais ais_ninja 提供的一些函数
+  * ais.createCompletion 调用 OpenAI 的 Completion API
+  * ais.createChatCompletion 调用 OpenAI 的 Chat Completion API
+  * ais_progress(content:string) 不需要 require,返回给用户当前方法的调用进度
 
 [plugins](./plugins) 目录格式：
 
@@ -154,3 +159,20 @@ docker run -d \
 ```
 
 在前台插件编辑中编写变量保存，然后就可以在代码中使用 `process.env.SENIVERSE_KEY` 获取变量。
+
+### 查看插件日志
+
+可以使用 `console.log` 打印日志。在插件页面中打开调试按钮，会将日志输出到浏览器的 console 中。
+
+```
+📣📣📣function_call - [心知天气](search_weather)(ae9bc196-4bfe-43a9-8060-2d2e2ec601c5)
+{
+    "name": "10000__search_weather",
+    "arguments": "{\n\"location\": \"shanghai\"\n}"
+}
+📣📣📣function_response - []()(ae9bc196-4bfe-43a9-8060-2d2e2ec601c5)
+{
+    "status": "The API key is invalid.",
+    "status_code": "AP010003"
+}
+```

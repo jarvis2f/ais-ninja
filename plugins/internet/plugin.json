@@ -1,0 +1,30 @@
+{
+  "name": "internet",
+  "avatar": "https://ais.ninja/plugin/internet.svg",
+  "variables": {
+    "CHROME_BIN": "Your chrome bin path, for example: /usr/bin/chromium-browser"
+  },
+  "functions": [
+    {
+      "name": "access_internet",
+      "description": "Access network content through url and return the web page text content of url",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "url to access, for example: https://ais.ninja"
+          },
+          "filter": {
+            "type": "string",
+            "description": "a prompt to provide gpt-3 to filter the content, only the content that contains the filter will be returned"
+          }
+        },
+        "required": [
+          "url",
+          "filter"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "name": "The Movie Database",
+  "avatar": "https://files.readme.io/29c6fee-blue_short.svg",
+  "variables": {
+    "TMDB_API_KEY": "Your API Key"
+  },
+  "functions": [
+    {
+      "name": "search_movies",
+      "description": "Query movies from The Movie Database (TMDb)",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The movie or keyword to search for"
+          },
+          "page": {
+            "type": "number",
+            "description": "The page of results to return"
+          },
+          "region": {
+            "type": "string",
+            "description": "The region to search within"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    }
+  ]
+}
+
+
+
+

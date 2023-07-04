@@ -1,7 +1,6 @@
 
 async function search({query: query}) {
-  console.log("query", query)
-
+  ais_progress(`searching ${query}`)
   try {
     const url = `https://www.googleapis.com/customsearch/v1?key=${process.env.API_KEY}&cx=${process.env.SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=3`;
 

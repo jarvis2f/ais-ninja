@@ -176,7 +176,7 @@ function ChatMessage({
                 icon: pluginAvatar(plugin),
                 title: plugin.name,
                 subTitle: plugin.function?.name,
-                description: plugin.function?.description,
+                description: plugin.progress?.join('\n'),
                 status: plugin.status
               }))}
             />

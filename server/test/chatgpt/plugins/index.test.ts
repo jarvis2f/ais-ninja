@@ -1,5 +1,11 @@
 import {createPlugin, installModule, installModuleIfNeeded, PLUGINS_MODULE_DIR} from "../../../src/chatgpt/plugins";
 import * as path from 'path';
+import {Configuration, OpenAIApi} from "openai";
+import {getRandomClient} from "../../../src/chatgpt";
+require('dotenv').config({
+  path: path.resolve(__dirname, '../../../.env')
+
+});
 
 test('Test VM process.env is defined', async () => {
   await createPlugin(`
@@ -188,6 +194,34 @@ test('Execute plugin code with non-existent function name', async () => {
   });
 });
 
+// mock getRandomClient()
+jest.mock('../../../src/chatgpt', () => ({
+  getRandomClient: jest.fn((...args) => {
+    console.log('key', process.env.TEST_OPENAI_API_KEY);
+    return [null, new OpenAIApi(new Configuration({apiKey: process.env.TEST_OPENAI_API_KEY}))];
+  })
+}));
+
+test('use ais.createCompletion function', async () => {
+  expect(getRandomClient("text-davinci-002")).toEqual([null, expect.any(OpenAIApi)]);
+
+  const plugin = createPlugin(
+    `
+    const ais = require('ais');
+    async function completion({ text }) {
+      return await ais.createCompletion({
+        prompt: text
+      });
+    }
+    `,
+    {debug: true, log: console.log}
+  );
+
+  const result = await plugin.run('completion', JSON.stringify({text: 'Write a tagline for an ice cream shop.'}));
+  console.log(result);
+  expect(result).not.toBe('');
+});
+
 test('Install non-existent module', async () => {
   const moduleName = 'non-existent-module';
   const moduleDir = path.join(PLUGINS_MODULE_DIR, 'non-existent-module');
@@ -203,3 +237,4 @@ test('Install existing module', async () => {
   const result = await installModule(moduleName, moduleDir);
   expect(result).toBe(true);
 });
+

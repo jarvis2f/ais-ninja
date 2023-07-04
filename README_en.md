@@ -134,6 +134,11 @@ Available libraries:
 * [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch) Make a network request
 * [dayjs](https://day.js.org/) time processing
 * [lodash](https://lodash.com/) Tool Library
+* [jsdom](https://github.com/jsdom/jsdom) manipulating the DOM
+* ais Some functions provided by the ais_ninja system
+   * ais.createCompletion Call OpenAI's Completion API
+   * ais.createChatCompletion Call OpenAI's Chat Completion API
+   * ais_progress(content:string) No require required, return to the user the call progress of the current method
 
 [plugins](./plugins) directory format：
 
@@ -158,3 +163,20 @@ Define variables in the variables field in plugin.json.
 
 Write the variable save in the front-end plugin editor, and then you can use `process.env.SENIVERSE_KEY` to get the
 variable in the code.
+
+### Plugin Logs
+
+Logs can be printed using `console.log`. Turn on the debug button on the plugin page, and the log will be output to the console of the browser.
+
+```
+📣📣📣function_call - [seniverse](search_weather)(ae9bc196-4bfe-43a9-8060-2d2e2ec601c5)
+{
+    "name": "10000__search_weather",
+    "arguments": "{\n\"location\": \"shanghai\"\n}"
+}
+📣📣📣function_response - []()(ae9bc196-4bfe-43a9-8060-2d2e2ec601c5)
+{
+    "status": "The API key is invalid.",
+    "status_code": "AP010003"
+}
+```

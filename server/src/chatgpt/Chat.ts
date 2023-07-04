@@ -42,12 +42,12 @@ export class Chat {
       responseType: 'stream',
       transformRequest: [(data, headers) => {
         if (logger.isLevelEnabled('debug')) {
-          logger.debug("OpenAI Request: " + data);
           if (headers) {
             for (const [key, value] of Object.entries(headers)) {
               logger.debug("OpenAI Request Headers: " + key + ": " + utils.defaultInspect(value));
             }
           }
+          logger.debug("OpenAI Request: " + data);
         }
         return data;
       }],
@@ -135,7 +135,11 @@ export class Chat {
               callback && callback(error);
               return null;
             });
-            if (function_response === null) return;
+            if (function_response === null || function_response === '') {
+              callback && callback('无法查询到信息');
+              this.finished = true;
+              return;
+            }
             await this.chat({
               role: ChatCompletionRequestMessageRoleEnum.Function,
               name: completeMessage.function_call.name,
@@ -224,6 +228,10 @@ export class Chat {
           logger.debug(`Plugin log：${args.join(' ')}`);
           this.res_function_log(call_id, 'function_log', args.join(' '));
         },
+        progress: (content: string) => {
+          logger.debug(`Plugin progress：${content}`);
+          this.res_function_progress(call_id, content);
+        }
       }).run(function_name, function_call.arguments);
       logger.debug(`Plugin returns：${utils.defaultInspect(function_response)}`);
       this.res_function_log(call_id, 'function_response', function_response, 'function_stop');
@@ -232,6 +240,18 @@ export class Chat {
       this.res_function_log(call_id, 'function_error', (e as Error).message, 'function_error');
       return Promise.reject(e);
     }
+  }
+
+  res_function_progress(call_id: string, progress: string) {
+    this.res_write({
+      parentMessageId: this.parentMessageId,
+      role: ChatCompletionRequestMessageRoleEnum.Assistant,
+      segment: 'function_progress',
+      plugin: {
+        id: call_id,
+        progress: [progress]
+      },
+    })
   }
 
   res_function_log(call_id: string, debug_type: string, debug_content: string, segment: string = 'function_log') {

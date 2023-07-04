@@ -103,7 +103,7 @@ router.post('/import', async (req, res) => {
           parameters: func.parameters,
           script: func.script,
         }));
-        const origin_variables = JSON.parse(existingPlugin.variables) as { name: string, value: string }[];
+        const origin_variables = JSON.parse(existingPlugin.get('variables')) as { name: string, value: string }[];
         variables.forEach((variable) => {
           const origin_variable = origin_variables.find((v) => v.name === variable.name);
           if (!origin_variable) {
@@ -120,7 +120,7 @@ router.post('/import', async (req, res) => {
           description: pluginFiles.desc as string,
           avatar: pluginJson.avatar,
           creator_id: 10000,
-          status: 1,
+          status: 0,
           variables: JSON.stringify(variables),
           functions: functions,
         } as Plugin, {

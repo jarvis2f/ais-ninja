@@ -303,7 +303,13 @@ ${JSON.stringify(response, null, 4)}
 									})
 								}}
 							/>
-							<Button block onClick={() => setPluginModal({open: true})}>
+							<Button block onClick={() => {
+								if (!token) {
+									setLoginModal(true)
+									return
+								}
+								setPluginModal({open: true});
+							}}>
 								{t('插件')}
 							</Button>
 							<Button block onClick={() => setRoleConfigModal({open: true})}>

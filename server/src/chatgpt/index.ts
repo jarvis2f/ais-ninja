@@ -24,9 +24,7 @@ async function initClients() {
 function putClient(token: Token) {
   const configuration = new Configuration({
     apiKey: token.key,
-    baseOptions: {
-      url: token.host,
-    }
+    basePath: `${token.host}/v1`,
   });
   const openai = new OpenAIApi(configuration);
   openAIClients.set(token.id, [token, openai]);
