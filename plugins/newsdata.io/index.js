@@ -20,15 +20,17 @@ async function search_latest_news({
 
   const url = `https://newsdata.io/api/1/news?${queryParams.toString()}`;
 
+  ais_progress(`Accessing: ${url}`);
   return await fetch(url).then(res => {
     // 保留3条
     return res.json().then(json => {
-      const {status, totalResults, articles} = json;
-      if (status === 'ok') {
+      const {status, totalResults, results, nextPage} = json;
+      if (status === 'success') {
         return JSON.stringify({
           status,
           totalResults,
-          articles: articles.slice(0, 3)
+          articles: results.slice(0, 3),
+          nextPage
         });
       }
       return JSON.stringify(json);
@@ -37,5 +39,5 @@ async function search_latest_news({
 }
 
 // Example usage:
-process.env.API_KEY = 'pub_256955db4080f395e9f59fc14a09fa37beb20';
-search_latest_news({q: 'pizza', country: 'au', language: 'en'}).then(console.log);
+// process.env.API_KEY = '';
+// search_latest_news({q: 'pizza', country: 'au', language: 'en'}).then(console.log);
