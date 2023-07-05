@@ -45,14 +45,7 @@ docker run -d \
     -e DATABASE_PASSWORD=123456     \
     -e DATABASE_SYNC='true'     \
     -e REDIS_URL=redis://${url}:6379/0     \
-    -e EMAIL_HOST=smtp.office365.com     \
-    -e EMAIL_PORT=587     \
-    -e EMAIL_FROM=     \
-    -e EMAIL_AUTH_USER=     \
-    -e EMAIL_AUTH_PASS=     \
-    -e SOCIAL_GOOGLE_CLIENT_ID=     \
-    -e VITE_APP_REQUEST_HOST=     \
-    jarvis2f/ais-ninja:v1.0.1
+    jarvis2f/ais-ninja:v1.0.2
 ```
 
 ### docker-compose
