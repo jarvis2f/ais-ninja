@@ -33,7 +33,9 @@ export const startServer = async () => {
     });
 
     // 初始化插件
-    initPlugin();
+    initPlugin().then(() => {
+      logger.info("Plugins initialized");
+    });
 
     const app = express();
     app.use(res_handler)

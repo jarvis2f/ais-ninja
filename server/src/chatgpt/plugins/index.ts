@@ -88,11 +88,15 @@ export function createPlugin(script: string, options: Options) {
 
 export async function installModule(moduleName: string, moduleDir: string): Promise<boolean> {
   if (!fs.existsSync(moduleDir)) {
+    logger.debug("Creating plugins directory.")
     fs.mkdirSync(moduleDir);
+  }
+
+  if (!fs.existsSync(path.join(moduleDir, 'package.json'))) {
     fs.writeFileSync(path.join(moduleDir, 'package.json'), '{}');
   }
 
-  return await exec(`npm install ${moduleName}`, {cwd: moduleDir}).then(({stdout, stderr}: {
+  return await exec(`npm install ${moduleName} --save`, {cwd: moduleDir}).then(({stdout, stderr}: {
     stdout: string,
     stderr: string
   }) => {
@@ -133,10 +137,10 @@ export async function installModuleIfNeeded(moduleName: string) {
   }
 }
 
-export function initPlugin() {
-  available_modules.forEach((moduleName) => {
-    installModuleIfNeeded(moduleName).then();
-  });
+export async function initPlugin() {
+  for (let moduleName of available_modules) {
+    await installModuleIfNeeded(moduleName);
+  }
 }
 
 async function createCompletion(createCompletionRequest: CreateCompletionRequest): Promise<string> {
