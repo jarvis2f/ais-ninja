@@ -1,5 +1,6 @@
 {
   "请输入正确的邮箱": "Please enter a valid email address.",
+  "请输入正确的手机号": "Please enter a valid phone number",
   "发送成功": "Sent successfully.",
   "缺少必要参数": "Missing required parameters.",
   "请先发送验证码": "Please send the verification code first.",

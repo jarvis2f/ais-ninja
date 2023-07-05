@@ -5,7 +5,7 @@ async function use_chrome(url) {
   const chrome_bin = process.env.CHROME_BIN;
   if (!chrome_bin) {
     console.log('chrome_bin is not defined');
-    return '';
+    return 'Failed to access the page';
   }
   try {
     const browser = await puppeteer.launch({
@@ -84,7 +84,7 @@ async function use_chrome(url) {
     return result;
   } catch (error) {
     console.log('Error accessing page:', error);
-    return 'cannot access page'
+    return 'Failed to access the page'
   }
 }
 

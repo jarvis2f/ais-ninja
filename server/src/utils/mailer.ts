@@ -11,11 +11,9 @@ function initTransporter() {
   transporter = createTransport({
     host: config?.getConfigValue('email.host') as string,
     port: Number(config?.getConfigValue('email.port')),
-    ignoreTLS: false,
-    secureConnection: false,
-    tls: {
-      ciphers: 'SSLv3'
-    },
+    ignoreTLS: config?.getConfigValue('email.ignoreTLS'),
+    secureConnection: config?.getConfigValue('email.secureConnection'),
+    tls: config?.getConfigValue('email.tls'),
     auth: {
       user: config?.getConfigValue('email.auth.user'),
       pass: config?.getConfigValue('email.auth.pass')

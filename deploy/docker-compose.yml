@@ -42,7 +42,6 @@ services:
       EMAIL_AUTH_USER:
       EMAIL_AUTH_PASS:
       SOCIAL_GOOGLE_CLIENT_ID:
-      VITE_APP_REQUEST_HOST:
     ports:
       - 80:80
     networks:
