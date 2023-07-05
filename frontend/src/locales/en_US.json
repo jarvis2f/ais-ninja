@@ -144,7 +144,7 @@
 	"图像质量": "Image quality",
 	"图像风格：": "Image style:",
 	"上传图片": "Upload",
-	"请输入绘画提示次，可以使用优化功能对提示词进行优化效果会更好哦！": "Please enter the number of painting prompts. You can use the optimization feature to improve the effectiveness of the prompts!",
+	"请输入绘画提示词，可以使用优化功能对提示词进行优化效果会更好哦！": "Please enter the painting prompts. You can use the optimization feature to improve the effectiveness of the prompts!",
 	"优化文案": "Optimize",
 	"生成图像": "Generate",
 	"元": "dollar",
