@@ -56,7 +56,7 @@ class Config {
     if (key) {
       const value = configObject[key];
       if (value !== undefined) {
-        if (typeof value === 'object' && !Array.isArray(value)) {
+        if (typeof value === 'object' && !Array.isArray(value) && keys.length > 0) {
           return this.getConfigValueFromObject(value, keys);
         } else {
           return value;
