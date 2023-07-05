@@ -531,7 +531,7 @@ function DrawPage() {
 									style={{
 										borderRadius: 0
 									}}
-									placeholder={t('请输入绘画提示次，可以使用优化功能对提示词进行优化效果会更好哦！')!}
+									placeholder={t('请输入绘画提示词，可以使用优化功能对提示词进行优化效果会更好哦！')!}
 								/>
 								<div className={styles.drawPage_config_input_buttons}>
 									<div onClick={optimizePrompt}>
