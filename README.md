@@ -28,7 +28,6 @@ ais-ninja 是一个基于 chatgpt 的 Web 应用程序。它基于 [ChatGpt-Web]
 | [seniverse](plugins%2Fseniverse)       | 天气查询              |
 | [themoviedb](plugins%2Fthemoviedb)     | 电影信息查询            |
 
-
 ## 部署
 
 ### docker
@@ -102,12 +101,18 @@ docker run -d \
 | `DATABASE_PASSWORD`       | 数据库密码                                                                     |
 | `DATABASE_SYNC`           | 项目启动是否自动同步数据库表结构。 true or false                                           |
 | `REDIS_URL`               | Redis 地址，格式: redis[s]://[[username][:password]@][host][:port][/db-number] |
+| `EMAIL_ENABLE`            | 启用邮箱登录注册 true or false                                                    |
 | `EMAIL_HOST`              | 邮箱服务地址                                                                    |
 | `EMAIL_PORT`              | 邮箱服务端口                                                                    |
 | `EMAIL_FROM`              | 邮箱服务发送方邮箱地址                                                               |
 | `EMAIL_AUTH_USER`         | 邮箱服务用户名                                                                   |
 | `EMAIL_AUTH_PASS`         | 邮箱服务密码                                                                    |
 | `SOCIAL_GOOGLE_CLIENT_ID` | 谷歌登录的client_id                                                            |
+| `ALI_ACCESS_KEY_ID`       | 阿里云 accessKeyId                                                           |
+| `ALI_ACCESS_KEY_SECRET`   | 阿里云 accessKeySecret                                                       |
+| `ALI_SMS_ENABLE`          | 启用手机登录注册 true or false                                                    |
+| `ALI_SMS_SIGN_NAME`       | 阿里云短信验证码服务签名                                                              |
+| `ALI_SMS_TEMPLATE_CODE`   | 阿里云验证码短信模板，需要包含 {code}                                                    |
 
 ## 插件开发
 

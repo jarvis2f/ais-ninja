@@ -101,12 +101,18 @@ admin address：`http://localhost:6789/admin`
 | `DATABASE_PASSWORD`       | Database password.                                                             |
 | `DATABASE_SYNC`           | Automatically synchronize model to database. true or false                     |
 | `REDIS_URL`               | Redis url.format: redis[s]://[[username][:password]@][host][:port][/db-number] |
+| `EMAIL_ENABLE`            | Enable email login registration. true or false                                 |
 | `EMAIL_HOST`              | Email host.                                                                    |
 | `EMAIL_PORT`              | Email port.                                                                    |
 | `EMAIL_FROM`              | Email from.                                                                    |
 | `EMAIL_AUTH_USER`         | Email auth user.                                                               |
 | `EMAIL_AUTH_PASS`         | Email auth pass.                                                               |
 | `SOCIAL_GOOGLE_CLIENT_ID` | Google client id.                                                              |
+| `ALI_ACCESS_KEY_ID`       | Alibaba Cloud accessKeyId                                                      |
+| `ALI_ACCESS_KEY_SECRET`   | Alibaba Cloud accessKeySecret                                                  |
+| `ALI_SMS_ENABLE`          | Enable mobile login registration true or false                                 |
+| `ALI_SMS_SIGN_NAME`       | Alibaba Cloud SMS Verification Code Service Signature                          |
+| `ALI_SMS_TEMPLATE_CODE`   | Alibaba Cloud verification code SMS template, which needs to include {code}    |
 
 ## ChatGPT Plugin Development
 
