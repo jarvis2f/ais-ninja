@@ -1,4 +1,4 @@
-async function searchMovies({ page = 1, query, region = 'US' }) {
+async function search_movies({ page = 1, query, region = 'US' }) {
   ais_progress(`searching ${query}, region: ${region}`)
   const apiKey = process.env.TMDB_API_KEY; // Replace with your TMDB API Key
   const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}&page=${page}&region=${region}`;

@@ -12,6 +12,23 @@ ais-ninja 是一个基于 chatgpt 的 Web 应用程序。它基于 [ChatGpt-Web]
 * 多语言支持。
 * 支持插件系统。
 
+## 插件列表
+
+> 欢迎贡献你开发的插件，如何开发可以查看 [插件开发文档](#插件开发)。
+
+| 插件名称                                   | 插件介绍              |
+|----------------------------------------|-------------------|
+| [Baidu Search](plugins%2Fbaidu-search) | 百度搜索              |
+| [DuckDuckGo](plugins%2FDuckDuckGo)     | DuckDuckGo 搜索     |
+| [Google Search](plugins%2Fgoogle)      | 谷歌搜索              |
+| [imdb](plugins%2Fimdb)                 | IMDB电影搜索（API需要付费） |
+| [internet](plugins%2Finternet)         | 联网插件              |
+| [ipinfo.io](plugins%2Fipinfo.io)       | ip 信息查询           |
+| [newsdata.io](plugins%2Fnewsdata.io)   | 新闻查询              |
+| [seniverse](plugins%2Fseniverse)       | 天气查询              |
+| [themoviedb](plugins%2Fthemoviedb)     | 电影信息查询            |
+
+
 ## 部署
 
 ### docker
@@ -92,7 +109,7 @@ docker run -d \
 | `EMAIL_AUTH_PASS`         | 邮箱服务密码                                                                    |
 | `SOCIAL_GOOGLE_CLIENT_ID` | 谷歌登录的client_id                                                            |
 
-## 插件
+## 插件开发
 
 项目启动之后可以到后台 -> 系统配置中填写仓库地址：`https://github.com/jarvis2f/ais-ninja.git`
 导入本仓库 [plugins](./plugins) 下的插件。
@@ -135,9 +152,9 @@ docker run -d \
 * [jsdom](https://github.com/jsdom/jsdom) 操作 DOM
 * [puppeteer-core](https://www.npmjs.com/package/puppeteer-core) 模拟浏览器
 * ais ais_ninja 提供的一些函数
-  * ais.createCompletion 调用 OpenAI 的 Completion API
-  * ais.createChatCompletion 调用 OpenAI 的 Chat Completion API
-  * ais_progress(content:string) 不需要 require,返回给用户当前方法的调用进度
+    * ais.createCompletion 调用 OpenAI 的 Completion API
+    * ais.createChatCompletion 调用 OpenAI 的 Chat Completion API
+    * ais_progress(content:string) 不需要 require,返回给用户当前方法的调用进度
 
 [plugins](./plugins) 目录格式：
 

@@ -26,15 +26,17 @@ const router = Router();
 const logger = getLogger('routes:user:user');
 
 router.get("/config", async (req, res) => {
+  let login_methods = config?.getConfigValue('login_methods') as string[];
   res.json(ApiResponse.success({
     shop_introduce: await Config.getConfig(ConfigNameEnum.SHOP_INTRODUCE),
     user_introduce: await Config.getConfig(ConfigNameEnum.USER_INTRODUCE),
     notifications: Notification.getNormalNotifications(),
     social: {
       google: {
-        client_id: config?.getConfigValue('social.google.client_id')
+        client_id: login_methods.indexOf('google') !== -1 && config?.getConfigValue('social.google.client_id')
       }
     },
+    login_methods: login_methods,
     models: await Token.getChatModels()
   }));
 });

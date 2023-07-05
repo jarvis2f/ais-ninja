@@ -10,6 +10,7 @@
     "test": "NODE_ENV=test jest"
   },
   "dependencies": {
+    "@alicloud/dysmsapi20170525": "2.0.24",
     "@types/pino": "^7.0.5",
     "alipay-sdk": "^3.4.0",
     "bull": "^4.10.4",

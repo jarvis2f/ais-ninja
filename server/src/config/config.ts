@@ -80,6 +80,19 @@ class Config {
 
     throw new Error(`Config value "${key}" not found.`);
   }
+
+  setConfigValue(key: string, value: any) {
+    const keys = key.split('.');
+    let configObject = this.configData;
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i];
+      if (!configObject[key]) {
+        configObject[key] = {};
+      }
+      configObject = configObject[key];
+    }
+    configObject[keys[keys.length - 1]] = value;
+  }
 }
 
 export let config: Config | undefined;
@@ -88,4 +101,17 @@ export function initConfig() {
   if (!config) {
     config = new Config();
   }
+  // init login type
+  const login_methods = [];
+  if (config.getConfigValue("email.enable")) {
+    login_methods.push("email");
+  }
+  if (config.getConfigValue("social.google.client_id")
+    && config.getConfigValue("social.google.client_id") !== '') {
+    login_methods.push("google");
+  }
+  if (config.getConfigValue("ali.sms.enable")) {
+    login_methods.push("phone");
+  }
+  config.setConfigValue("login_methods", login_methods);
 }

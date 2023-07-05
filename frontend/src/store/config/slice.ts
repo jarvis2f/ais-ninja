@@ -19,7 +19,8 @@ export interface ConfigState {
 	changeConfig: (config: ChatGptConfig) => void
 	notifications: Array<NotificationInfo>
 	shop_introduce: string
-	user_introduce: string
+	user_introduce: string,
+	login_methods?: string[],
 	social?: {
 		google: {
 			client_id: string

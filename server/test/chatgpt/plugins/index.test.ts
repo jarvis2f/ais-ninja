@@ -4,7 +4,6 @@ import {Configuration, OpenAIApi} from "openai";
 import {getRandomClient} from "../../../src/chatgpt";
 require('dotenv').config({
   path: path.resolve(__dirname, '../../../.env')
-
 });
 
 test('Test VM process.env is defined', async () => {

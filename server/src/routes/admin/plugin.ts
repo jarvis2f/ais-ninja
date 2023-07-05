@@ -95,14 +95,8 @@ router.post('/import', async (req, res) => {
 
       if (existingPlugin) {
         // Update existing plugin
-        existingPlugin.description = pluginFiles.desc as string;
-        existingPlugin.avatar = pluginJson.avatar;
-        existingPlugin.functions = functions.map((func: any) => ({
-          name: func.name,
-          description: func.description,
-          parameters: func.parameters,
-          script: func.script,
-        }));
+        existingPlugin.set('description', pluginFiles.desc as string);
+        existingPlugin.set('avatar', pluginJson.avatar);
         const origin_variables = JSON.parse(existingPlugin.get('variables')) as { name: string, value: string }[];
         variables.forEach((variable) => {
           const origin_variable = origin_variables.find((v) => v.name === variable.name);
@@ -110,8 +104,22 @@ router.post('/import', async (req, res) => {
             origin_variables.push(variable);
           }
         });
-        existingPlugin.variables = JSON.stringify(origin_variables);
+        existingPlugin.set('variables', JSON.stringify(origin_variables));
         await existingPlugin.save({transaction: t});
+        // Update functions
+        const origin_functions = existingPlugin.get('functions') as Functions[];
+        functions.forEach((func: Functions) => {
+          const origin_func = origin_functions.find((f) => f.get('name') === func.name);
+          if (!origin_func) {
+            func.plugin_id = existingPlugin.id;
+            Functions.create(func, {transaction: t});
+          } else {
+            origin_func.set('description', func.description);
+            origin_func.set('parameters', func.parameters);
+            origin_func.set('script', func.script);
+            origin_func.save({transaction: t});
+          }
+        });
         plugins.push(existingPlugin);
       } else {
         // Insert new plugin
@@ -134,7 +142,6 @@ router.post('/import', async (req, res) => {
     await t.commit();
 
     logger.info(`plugins count: ${plugins.length}`);
-    logger.debug(`plugins: ${JSON.stringify(plugins)}`)
 
     res.json(ApiResponse.success({}, req.t(`导入成功`)));
   } catch (error) {

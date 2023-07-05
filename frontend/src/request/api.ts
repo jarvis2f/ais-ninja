@@ -17,7 +17,7 @@ import {TableData} from "@/types/admin";
 import {generateUUID} from "@/utils";
 
 // 获取验证码
-export function getCode(params: { source: string }) {
+export function getCode(params: { source: string, type: string }) {
   return request.get('/api/u/code/send', params)
 }
 

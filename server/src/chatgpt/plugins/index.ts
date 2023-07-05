@@ -47,7 +47,7 @@ export function createPlugin(script: string, options: Options) {
 
   const vm = new NodeVM({
     console: 'redirect',
-    sandbox: {fetch, ais_progress},
+    sandbox: {fetch, URLSearchParams, ais_progress},
     eval: false,
     wasm: false,
     require: resolve,

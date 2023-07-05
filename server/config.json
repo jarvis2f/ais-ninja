@@ -14,15 +14,30 @@
     "url": "redis[s]://[[username][:password]@][host][:port][/db-number]"
   },
   "email": {
+    "enable": false,
     "host": "smtp.office365.com",
     "port": 587,
     "from": "email@outlook.com",
     "auth_user": "user",
-    "auth_pass": "password"
+    "auth_pass": "password",
+    "ignoreTLS": false,
+    "secureConnection": false,
+    "tls": {
+      "ciphers": "SSLv3"
+    }
   },
   "social": {
     "google": {
       "client_id": ""
+    }
+  },
+  "ali": {
+    "access_key_id": "",
+    "access_key_secret": "",
+    "sms": {
+      "enable": false,
+      "sign_name": "",
+      "template_code": ""
     }
   }
 }

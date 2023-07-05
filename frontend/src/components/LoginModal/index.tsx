@@ -4,7 +4,7 @@ import {RequestLoginParams} from '@/types'
 import {LockOutlined, RobotOutlined,} from '@ant-design/icons'
 import {LoginForm, ProFormCaptcha, ProFormText} from '@ant-design/pro-form'
 import {Form, FormInstance, Modal, Space, Tabs} from 'antd'
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {GoogleSignIn} from '@/components/GoogleSignIn';
 import {configStore, userStore} from "@/store";
@@ -21,10 +21,32 @@ export function LoginCard(props: {
 	onSuccess: () => void
 }) {
 	const {t} = useTranslation()
-	const {social} = configStore();
-
-	const [loginType, setLoginType] = useState<LoginType>('code');
+	const {social, login_methods} = configStore();
+	const [loginType, setLoginType] = useState<LoginType>();
+	const [loginOptions, setLoginOptions] = useState<{ key: string, label: string }[]>([]);
 	const {setLoginModal} = userStore();
+	useEffect(() => {
+		const options = [];
+		if (login_methods?.includes('phone')) {
+			options.push({
+				key: 'phone',
+				label: t('手机号登录')
+			});
+		}
+		if (login_methods?.includes('email')) {
+			options.push({
+				key: 'email',
+				label: t('邮箱登录')
+			});
+		}
+		options.push({
+			key: 'password',
+			label: t('密码登录')
+		});
+		setLoginOptions(options);
+		setLoginType(options[0].key);
+	}, [login_methods]);
+
 	return (
 		<LoginForm<RequestLoginParams>
 			form={props.form}
@@ -68,23 +90,14 @@ export function LoginCard(props: {
 				onChange={(activeKey) => {
 					setLoginType(activeKey)
 				}}
-				items={[
-					{
-						key: 'code',
-						label: t('登录/注册')
-					},
-					{
-						key: 'password',
-						label: t('密码登录')
-					}
-				]}
+				items={loginOptions}
 			/>
 			<ProFormText
 				fieldProps={{
 					size: 'large',
 					prefix: <RobotOutlined/>
 				}}
-				placeholder={t('账号')!}
+				placeholder={loginType === 'email' ? t('邮箱')! : (loginType === 'phone' ? t('手机号') : t('账号'))!}
 				name="account"
 				rules={[
 					{
@@ -93,77 +106,72 @@ export function LoginCard(props: {
 					}
 				]}
 			/>
-			{
-				loginType === 'code' && (
-					<ProFormCaptcha
-						fieldProps={{
-							size: 'large',
-							prefix: <LockOutlined/>
-						}}
-						captchaProps={{
-							size: 'large'
-						}}
-						placeholder={t('验证码')!}
-						captchaTextRender={(timing, count) => {
-							if (timing) {
-								return `${count} ${t('获取验证码')}`
-							}
-							return t('获取验证码')
-						}}
-						name="code"
-						rules={[
-							{
-								required: true,
-								message: t('请输入验证码！')!
-							}
-						]}
-						onGetCaptcha={async () => {
-							const account = props.form.getFieldValue('account')
-							if (!account) {
-								props.form.setFields([
-									{
-										name: 'account',
-										errors: [t('请输入有效的账号')]
+			{(loginType === 'email' || loginType === 'phone') && (
+				<ProFormCaptcha
+					fieldProps={{
+						size: 'large',
+						prefix: <LockOutlined/>
+					}}
+					captchaProps={{
+						size: 'large'
+					}}
+					placeholder={t('验证码')!}
+					captchaTextRender={(timing, count) => {
+						if (timing) {
+							return `${count} ${t('获取验证码')}`
+						}
+						return t('获取验证码')
+					}}
+					name="code"
+					rules={[
+						{
+							required: true,
+							message: t('请输入验证码！')!
+						}
+					]}
+					onGetCaptcha={async () => {
+						const account = props.form.getFieldValue('account')
+						if (!account) {
+							props.form.setFields([
+								{
+									name: 'account',
+									errors: [t('请输入有效的账号')]
+								}
+							])
+							return Promise.reject()
+						}
+						return new Promise((resolve, reject) =>
+							getCode({source: account, type: loginType})
+								.then((res) => {
+									if (res.code === -1) {
+										reject(false)
+										return
 									}
-								])
-								return Promise.reject()
-							}
-							return new Promise((resolve, reject) =>
-								getCode({source: account})
-									.then((res) => {
-										if (res.code === -1) {
-											reject(false)
-											return
-										}
-										resolve()
-									})
-									.catch(reject)
-							)
-						}}
-					/>
-				)
-			}
-			{
-				loginType === 'password' && (
-					<ProFormText.Password
-						name="password"
-						fieldProps={{
-							size: 'large',
-							prefix: <LockOutlined className={'prefixIcon'}/>,
-						}}
-						placeholder={t('请输入密码')!}
-						rules={[
-							{
-								required: true,
-								message: t('8位及以上至少包含一个字母和一个数字')!,
-								pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*]{8,}$/
-							},
-						]}
-					/>
-				)
-			}
+									resolve()
+								})
+								.catch(reject)
+						)
+					}}
+				/>
+			)}
+			<ProFormText.Password
+				name="password"
+				fieldProps={{
+					size: 'large',
+					prefix: <LockOutlined className={'prefixIcon'}/>,
+				}}
+				placeholder={t('密码')!}
+				rules={[
+					{
+						required: true,
+						message: t('8位及以上至少包含一个字母和一个数字')!,
+						pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*]{8,}$/
+					},
+				]}
+			/>
 			<div>
-				<a href="/privacy-policy" style={{marginRight: '10px'}} onClick={() => setLoginModal(false)}>{t('隐私政策')}</a>
+				<a href="/privacy-policy" style={{marginRight: '10px'}}
+				   onClick={() => setLoginModal(false)}>{t('隐私政策')}</a>
 				<a href="/service-terms" onClick={() => setLoginModal(false)}>{t('服务条款')}</a>
 			</div>
 			<div
