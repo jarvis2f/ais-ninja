@@ -38,7 +38,7 @@ router.post('/', async function (req, res) {
   res.json(ApiResponse.success(await Payment.add(channel, name, params, types, status)));
 });
 
-router.put('/payment', async function (req, res) {
+router.put('/', async function (req, res) {
   const {id, channel, name, params, types, status} = req.body;
   if (!id || !channel || !name || !params || !types) {
     res.json(ApiResponse.miss());

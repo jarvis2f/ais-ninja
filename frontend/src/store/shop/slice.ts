@@ -4,13 +4,13 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 
 export interface shopState {
   // pay 支付方式
-  payTypes: Array<PayTypeInfo>
+  payTypes: Array<string>
   // 商品列表
   goodsList: Array<ProductInfo>
   // 修改商品列表
   changeGoodsList: (list: Array<ProductInfo>) => void
   // 修改支付方式
-  changePayTypes: (list: Array<PayTypeInfo>) => void
+  changePayTypes: (list: Array<string>) => void
 }
 
 const shopStore = create<shopState>()(

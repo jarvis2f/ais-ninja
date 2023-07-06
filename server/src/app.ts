@@ -54,6 +54,7 @@ export const startServer = async () => {
       });
     app.use(i18NextHttpMiddleware.handle(i18next));
     app.use(cors());
+    app.all('/api/u/stripe/webhook', express.raw({type: 'application/json'}));
     app.use(express.json());
     app.use(express.urlencoded({extended: true}));
     app.use(auth);

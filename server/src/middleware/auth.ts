@@ -8,6 +8,7 @@ const verifyPath: string[] = [
   'get:/api/u/code/send',
   'get:/api/u/pay/notify',
   'post:/api/u/pay/notify',
+  'post:/api/u/stripe/webhook',
   'get:/api/u/config',
   'get:/api/u/code/verify',
 ];

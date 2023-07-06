@@ -131,6 +131,13 @@ export interface YipayInfo {
   return_url?: string
 }
 
+export interface StripeInfo {
+	key: string
+	webhook_secret: string
+	success_url: string
+	cancel_url: string
+}
+
 export interface PaymentInfo {
   id: number
   name: string

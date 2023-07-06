@@ -37,6 +37,7 @@
     "sequelize": "^6.32.0",
     "sequelize-typescript": "^2.1.5",
     "simple-git": "^3.19.1",
+    "stripe": "^12.11.0",
     "vm2": "^3.9.19"
   },
   "devDependencies": {

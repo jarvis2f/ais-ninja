@@ -1,6 +1,6 @@
 {
   "name": "Google Search",
-  "avatar": "https://raw.githubusercontent.com/simple-icons/simple-icons/2309009f463bc6bb49acc0b45f662cc85fdee503/icons/google.svg",
+  "avatar": "https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png",
   "variables": {
     "API_KEY": "Your Google API Key",
     "SEARCH_ENGINE_ID": "Your Google Search Engine ID"

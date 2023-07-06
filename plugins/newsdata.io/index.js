@@ -20,7 +20,7 @@ async function search_latest_news({
 
   const url = `https://newsdata.io/api/1/news?${queryParams.toString()}`;
 
-  ais_progress(`Accessing: ${url}`);
+  ais_progress(`Accessing: ${url.replace(process.env.API_KEY, '***')}`);
   return await fetch(url).then(res => {
     // 保留3条
     return res.json().then(json => {

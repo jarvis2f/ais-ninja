@@ -1,6 +1,7 @@
 {
   "server": {
-    "port": 5174
+    "port": 5174,
+    "domain": "http://localhost:5174"
   },
   "database": {
     "name": "ais_ninja",

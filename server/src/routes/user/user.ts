@@ -21,6 +21,9 @@ import {Notification} from "../../models/Notification";
 import {config} from "../../config/config";
 import {getLogger} from "../../utils/logger";
 import {Token} from "../../models/Token";
+import Stripe from "stripe";
+import stripe from "../../utils/stripe";
+import {Op} from "sequelize";
 
 const router = Router();
 const logger = getLogger('routes:user:user');
@@ -195,6 +198,10 @@ async function getPayments(): Promise<string[]> {
   let payTypes: string[] = [];
   for (const payment of payments) {
     const json = payment.toJSON();
+    if (json?.channel === 'stripe') {
+      payTypes = payTypes.concat(['stripe']);
+      continue;
+    }
     const types = json?.types?.split(',');
     payTypes = payTypes.concat(types!);
   }
@@ -212,7 +219,8 @@ router.post('/use_redemption_code', async (req, res) => {
   const redemption_code = await RedemptionCode.findOne({
     where: {
       key: key
-    }
+    },
+    raw: true
   });
   if (!redemption_code) {
     res.json(ApiResponse.error(400, req.t('卡密不存在')));
@@ -321,19 +329,40 @@ router.post('/pay/precreate', async (req, res) => {
     res.json(ApiResponse.miss());
     return;
   }
+  let user = await User.findByPk(user_id, {raw: true});
+  if (!user) {
+    res.json(ApiResponse.error(400, req.t('用户不存在')));
+    return;
+  }
   const {quantity = 1, pay_type, product_id} = req.body;
   if (!pay_type || !product_id) {
     res.json(ApiResponse.miss());
     return;
   }
   // 获取商品信息
-  const product = await Product.findByPk(product_id);
+  const product = await Product.findByPk(product_id, {raw: true});
   if (!product) {
     res.json(ApiResponse.error(400, req.t('商品不存在')));
     return;
   }
   // 获取支付信息
-  const paymentInfo = await Payment.findOne(pay_type);
+  const paymentInfo = await Payment.findOne({
+    // where (types like '%pay_type%' or channel = 'pay_type') and status = 1
+    where: {
+      [Op.or]: [
+        {
+          types: {
+            [Op.like]: `%${pay_type}%`
+          },
+        },
+        {
+          channel: pay_type
+        },
+      ],
+      status: 1
+    },
+    raw: true
+  });
   if (!paymentInfo) {
     res.json(ApiResponse.error(400, req.t('支付信息未配置')));
     return;
@@ -345,12 +374,12 @@ router.post('/pay/precreate', async (req, res) => {
     pay_url: '',
     pay_type
   };
-  const ip:string = utils.getClientIP(req);
+  const ip: string = utils.getClientIP(req);
   const notifyUrl = `https://${req.get('host')?.split(':')[0]}/api/pay/notify?channel=${paymentInfo.channel}`;
   const amount = product.price / 100;
   const paymentParams = JSON.parse(paymentInfo.params);
   const paramsStringify = JSON.stringify({
-    order_id: out_trade_no,
+    order_id: String(out_trade_no),
     product_id,
     user_id,
     payment_id: paymentInfo.id
@@ -401,6 +430,23 @@ router.post('/pay/precreate', async (req, res) => {
     responseData.pay_url = yipayPrecreate.pay_url;
   }
 
+  if (paymentInfo.channel === 'stripe') {
+    const session = await stripe.precreate(paymentParams,
+      [{
+        price_data: {
+          currency: 'cny',
+          product_data: {
+            name: product.title,
+          },
+          unit_amount: product.price,
+        },
+        quantity: 1,
+      }],
+      String(out_trade_no),
+      /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(user.account) ? user.account : undefined);
+    responseData.pay_url = session.url!;
+  }
+
   await Order.add({
     id: Number(out_trade_no),
     pay_type,
@@ -420,59 +466,63 @@ router.post('/pay/precreate', async (req, res) => {
   res.json(ApiResponse.success(responseData))
 });
 
+// @ts-ignore
+const batchModify = async ({order_id, trade_status, trade_no, notify_info, user_id, product_id}) => {
+  const product = await Product.findByPk(product_id, {raw: true});
+  if (!product)
+    return false;
+  // 新增用户余额
+  if (!await User.addUserProductQuota(user_id, product)) {
+    return false;
+  }
+  // 修改订单信息
+  await Order.upsert({
+    id: order_id,
+    trade_status,
+    trade_no,
+    notify_info
+  });
+  // 加个账单
+  await Turnover.add(user_id, `{购买}-${product.title}`,
+    product.type === 'day' ? `${product.value}天` : `${product.value}{积分}`);
+  return true;
+};
+
+const checkNotifySign = async (payment_id: number, data: { sign: string }, channel: string) => {
+  const paymentInfo = await Payment.findByPk(payment_id, {raw: true});
+  if (!paymentInfo) {
+    return false;
+  }
+  const config = JSON.parse(paymentInfo.params);
+  if (channel === 'alipay') {
+    const isCheck = await alipay.checkNotifySign(config, data);
+    if (!isCheck) {
+      return false;
+    }
+  }
+  if (channel === 'yipay') {
+    const isCheck = await yipay.checkNotifySign(data, config.key);
+    if (!isCheck) {
+      return false;
+    }
+  }
+  return true;
+};
+
+
 // 支付通知
 router.all('/pay/notify', async (req, res) => {
-  const checkNotifySign = async (payment_id: number, data: { sign: string }, channel: string) => {
-    const paymentInfo = await Payment.findByPk(payment_id);
-    if (!paymentInfo) {
-      return false;
-    }
-    const config = JSON.parse(paymentInfo.params);
-    if (channel === 'alipay') {
-      const isCheck = await alipay.checkNotifySign(config, data);
-      if (!isCheck) {
-        return false;
-      }
-    }
-    if (channel === 'yipay') {
-      const isCheck = await yipay.checkNotifySign(data, config.key);
-      if (!isCheck) {
-        return false;
-      }
-    }
-    return true;
-  };
-  // @ts-ignore
-  const batchModify = async ({order_id, trade_status, trade_no, notify_info, user_id, product_id}) => {
-    const product = await Product.findByPk(product_id);
-    if (!product)
-      return false;
-    // 新增用户余额
-    if (!await User.addUserProductQuota(user_id, product)) {
-      return false;
-    }
-    // 修改订单信息
-    await Order.upsert({
-      id: order_id,
-      trade_status,
-      trade_no,
-      notify_info
-    });
-    // 加个账单
-    await Turnover.add(user_id, `{购买}-${product.title}`,
-      product.type === 'day' ? `${product.value}天` : `${product.value}积分`);
-    return true;
-  };
   try {
-    if (req.body?.channel && req.body?.channel === 'alipay') {
+    let pay_channel = req.body?.channel;
+    if (pay_channel && pay_channel === 'alipay') {
       const {body, out_trade_no, trade_status, trade_no} = req.body;
-      const orderInfo = await Order.findOne(out_trade_no);
+      const orderInfo = await Order.findByPk(out_trade_no, {raw: true});
       if (!orderInfo || orderInfo.trade_status !== 'TRADE_AWAIT') {
         res.json('fail');
         return;
       }
       const {payment_id, user_id, product_id} = JSON.parse(body);
-      const isCheck = await checkNotifySign(payment_id, req.body, req.body?.channel);
+      const isCheck = await checkNotifySign(payment_id, req.body, pay_channel);
       if (!isCheck) {
         res.json('fail');
         return;
@@ -490,19 +540,20 @@ router.all('/pay/notify', async (req, res) => {
         return;
       }
     }
-    if (req.query?.channel && req.query?.channel === 'yipay') {
+    if (pay_channel && pay_channel === 'yipay') {
       const {out_trade_no, trade_status, trade_no} = req.query;
       const order = await Order.findOne({
         where: {
           trade_no: out_trade_no! as string
-        }
+        },
+        raw: true
       });
       if (!order || order.trade_status !== 'TRADE_AWAIT') {
         res.json('fail');
         return;
       }
       const {payment_id, user_id, product_id} = JSON.parse(decodeURIComponent(req.query?.param as string));
-      const isCheck = await checkNotifySign(payment_id, req.query as { sign: string }, req.query?.channel);
+      const isCheck = await checkNotifySign(payment_id, req.query as { sign: string }, pay_channel);
       if (!isCheck) {
         res.json('fail');
         return;
@@ -522,6 +573,63 @@ router.all('/pay/notify', async (req, res) => {
     }
   } catch (error) {
     logger.error(`pay notify error: ${error}`);
+  }
+  res.json('success');
+});
+
+router.post('/stripe/webhook',
+  async (req, res) => {
+  const {payment_id} = req.query;
+  try {
+    const paymentInfo = await Payment.findByPk(payment_id as string, {raw: true});
+    if (!paymentInfo) {
+      logger.error(`stripe webhook error: paymentInfo not found, payment_id: ${payment_id}`);
+      res.json('fail');
+      return;
+    }
+    const config = JSON.parse(paymentInfo.params);
+    const {data, type} = await stripe.constructEvent(config, req);
+    if (type !== 'checkout.session.completed') {
+      res.json('fail');
+      return;
+    }
+    const session = data.object as Stripe.Checkout.Session;
+    if (session.status !== 'complete') {
+      logger.error(`stripe webhook error: session status not complete, payment_id: ${payment_id}`);
+      res.json('fail');
+      return;
+    }
+    const {payment_intent, metadata} = session;
+    if (!metadata || !metadata.order_id) {
+      logger.error(`stripe webhook error: metadata or metadata.order_id not found, payment_id: ${payment_id}`);
+      res.json('fail');
+      return;
+    }
+    const orderInfo = await Order.findByPk(metadata.order_id, {raw: true});
+    if (!orderInfo || orderInfo.trade_status !== 'TRADE_AWAIT') {
+      logger.error(`stripe webhook error: orderInfo not found or orderInfo.trade_status not TRADE_AWAIT, payment_id: ${payment_id}`);
+      res.json('fail');
+      return;
+    }
+    if (!await stripe.checkChargeIsSuccess(config, payment_intent as string)) {
+      logger.error(`stripe webhook error: checkChargeIsSuccess fail, payment_id: ${payment_id}`);
+      res.json('fail');
+      return;
+    }
+    const modifyResult = await batchModify({
+      order_id: metadata.order_id,
+      trade_status: 'TRADE_SUCCESS',
+      trade_no: payment_intent,
+      notify_info: JSON.stringify(req.body),
+      user_id: orderInfo.user_id,
+      product_id: orderInfo.product_id
+    });
+    if (!modifyResult) {
+      res.json('fail');
+      return;
+    }
+  } catch (e){
+    logger.error(`pay notify error: ${e}`);
   }
   res.json('success');
 });

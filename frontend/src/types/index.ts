@@ -179,6 +179,7 @@ export interface TurnoverInfo {
 }
 
 export interface PayTypeInfo {
+	name: string
 	icon: string
 	key: string
 	title: string
