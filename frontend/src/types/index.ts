@@ -5,6 +5,7 @@ export interface RequestLoginParams {
 	account: string
 	code?: string | number
 	password?: string
+	invite_code?: string
 }
 
 export interface RequestSocialLoginParams {
@@ -18,6 +19,7 @@ export interface UserInfo {
 	nickname: string
 	avatar: string
 	role: string
+	invite_code: string
 	integral: number
 	vip_expire_time: string
 	svip_expire_time: string
@@ -222,4 +224,8 @@ export interface FunctionInfo {
 	// 本地 是否修改
 	modified?: boolean
 	new?: boolean
+}
+
+export interface InvitedInfo {
+	invited_count: number
 }

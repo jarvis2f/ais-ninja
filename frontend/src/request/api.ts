@@ -1,16 +1,16 @@
 import {
-  FunctionInfo,
-  PluginInfo,
-  ProductInfo,
-  RequesPrepay,
-  RequestChatOptions,
-  RequestLoginParams,
-  RequestSocialLoginParams,
-  ResponseConfigData,
-  ResponseLoginData,
-  SigninInfo,
-  TurnoverInfo,
-  UserInfo
+	FunctionInfo, InvitedInfo,
+	PluginInfo,
+	ProductInfo,
+	RequesPrepay,
+	RequestChatOptions,
+	RequestLoginParams,
+	RequestSocialLoginParams,
+	ResponseConfigData,
+	ResponseLoginData,
+	SigninInfo,
+	TurnoverInfo,
+	UserInfo
 } from '@/types'
 import request from '.'
 import {TableData} from "@/types/admin";
@@ -167,4 +167,8 @@ export function putPluginFunction(plugin_id: string, id: string, params: { name:
 
 export function deletePluginFunction(plugin_id: string, id: string) {
   return request.del(`/api/u/plugin/${plugin_id}/function/${id}`)
+}
+
+export function getInvited() {
+  return request.get<InvitedInfo>('/api/u/invited')
 }

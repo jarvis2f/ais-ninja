@@ -12,7 +12,7 @@ import {randomUUID} from "crypto";
 import dayjs from "dayjs";
 import {Product} from "../../models/Product";
 import {Payment} from "../../models/Payment";
-import {RedemptionCode, RedemptionCodeTypeEnum} from "../../models/RedemptionCode";
+import {RedemptionCode} from "../../models/RedemptionCode";
 import {Turnover} from "../../models/Turnover";
 import {Config, ConfigNameEnum} from "../../models/Config";
 import {Order} from "../../models/Order";
@@ -33,6 +33,8 @@ router.get("/config", async (req, res) => {
   res.json(ApiResponse.success({
     shop_introduce: await Config.getConfig(ConfigNameEnum.SHOP_INTRODUCE),
     user_introduce: await Config.getConfig(ConfigNameEnum.USER_INTRODUCE),
+    invitee_reward: await Config.getConfig(ConfigNameEnum.INVITEE_REWARD),
+    inviter_reward: await Config.getConfig(ConfigNameEnum.INVITER_REWARD),
     notifications: Notification.getNormalNotifications(),
     social: {
       google: {
@@ -40,16 +42,21 @@ router.get("/config", async (req, res) => {
       }
     },
     login_methods: login_methods,
-    models: await Token.getChatModels()
+    models: await Token.getChatModels(),
+    server_domain: config?.getConfigValue('server.domain'),
   }));
 });
 
 // 注册登录
 router.post('/login', async (req, res) => {
-  const {account, code, password} = req.body;
+  const {account, code, password, invite_code} = req.body;
   if (!account || (!code && !password)) {
     res.json(ApiResponse.miss());
     return;
+  }
+  let invite_by = 0;
+  if (invite_code) {
+    invite_by = await User.getUserByInviteCode(invite_code).then(user => user?.get('id')) || 0;
   }
   let user = await User.getUserByAccount(account);
   if (code) {
@@ -66,7 +73,7 @@ router.post('/login', async (req, res) => {
   }
   const ip = utils.getClientIP(req);
   if (!user) {
-    user = await User.add(account, password, ip);
+    user = await User.add(account, password, ip, undefined, undefined, invite_by);
   }
   await doLogin(user!, ip, res);
 });
@@ -86,7 +93,7 @@ async function doLogin(user: User, ip: string, res: any) {
 
 // 社交登录注册
 router.post('/login/social', async (req, res) => {
-  const {type, credential} = req.body;
+  const {type, credential, invite_code} = req.body;
   if (!type || !credential) {
     res.json(ApiResponse.miss());
     return;
@@ -95,13 +102,16 @@ router.post('/login/social', async (req, res) => {
     res.json(ApiResponse.error(400, req.t('暂不支持该登录方式')));
     return;
   }
+  let invite_by = 0;
+  if (invite_code) {
+    invite_by = await User.getUserByInviteCode(invite_code).then(user => user?.get('id')) || 0;
+  }
   let googleClientId = config?.getConfigValue('social.google.client_id');
   if (!googleClientId) {
     logger.error('social login fail: social.google.client_id is not set');
     res.json(ApiResponse.server_error());
     return;
   }
-
   const loginTicket = await new OAuth2Client(googleClientId)
     .verifyIdToken({idToken: credential});
   const payload = loginTicket?.getPayload();
@@ -116,7 +126,7 @@ router.post('/login/social', async (req, res) => {
   let user = await User.getUserByAccount(email!);
 
   if (!user) {
-    user = await User.add(email!, randomUUID(), utils.getClientIP(req), name, picture);
+    user = await User.add(email!, randomUUID(), utils.getClientIP(req), name, picture, invite_by);
   }
   if (!userSocial) {
     await UserSocial.add(user!.id, UserSocialTypeEnum.GOOGLE, socialId);
@@ -252,21 +262,19 @@ router.post('/use_redemption_code', async (req, res) => {
   }
   await Action.add(user_id, ActionTypeEnum.USE_REDEMPTION_CODE, ip, '使用卡密');
 
-  await User.updateUserVIP({
-    user_id: user_id,
-    value: Number(redemption_code.value),
-    level: redemption_code.level,
-    type: redemption_code.type,
-    operate: 'increment'
-  });
-
+  const type = redemption_code.type === 'day' ? 2 : 1;
   const typeText = redemption_code.type === 'day' ? {
     1: '(会员)',
     2: '(超级会员)',
   }[redemption_code.level!] || '(天数)' : '(积分)';
 
-  await Turnover.add(user_id, `{卡密充值} ${typeText}`,
-    `${redemption_code.value}${redemption_code.type === 'day' ? '{天}' : '{积分}'}`);
+  await User.updateUserIntegralOrLevelTime({
+    user_id: user_id,
+    quantity: Number(redemption_code.value),
+    type: type,
+    describe: `{卡密充值} ${typeText}`,
+    level: type == 2 ? redemption_code.level! : undefined,
+  });
 
   res.json(ApiResponse.success({}, req.t('使用卡密成功')));
 });
@@ -312,13 +320,12 @@ router.post('/signin', async (req, res) => {
   const ip = utils.getClientIP(req);
   await Action.add(user_id, ActionTypeEnum.SIGNIN, ip, '签到');
   await Signin.add(user_id, ip);
-  await User.updateUserVIP({
-    operate: 'increment',
+  await User.updateUserIntegralOrLevelTime({
     user_id: user_id,
-    value: Number(signin_reward),
-    type: RedemptionCodeTypeEnum.INTEGRAL,
+    quantity: Number(signin_reward),
+    type: 1,
+    describe: '{签到奖励}'
   });
-  await Turnover.add(user_id, '{签到奖励}', `${signin_reward}{积分}`);
   res.json(ApiResponse.success({}, `${req.t('签到成功')} +${signin_reward}${req.t('积分')}`));
 });
 
@@ -482,9 +489,6 @@ const batchModify = async ({order_id, trade_status, trade_no, notify_info, user_
     trade_no,
     notify_info
   });
-  // 加个账单
-  await Turnover.add(user_id, `{购买}-${product.title}`,
-    product.type === 'day' ? `${product.value}天` : `${product.value}{积分}`);
   return true;
 };
 
@@ -579,59 +583,70 @@ router.all('/pay/notify', async (req, res) => {
 
 router.post('/stripe/webhook',
   async (req, res) => {
-  const {payment_id} = req.query;
-  try {
-    const paymentInfo = await Payment.findByPk(payment_id as string, {raw: true});
-    if (!paymentInfo) {
-      logger.error(`stripe webhook error: paymentInfo not found, payment_id: ${payment_id}`);
-      res.json('fail');
-      return;
+    const {payment_id} = req.query;
+    try {
+      const paymentInfo = await Payment.findByPk(payment_id as string, {raw: true});
+      if (!paymentInfo) {
+        logger.error(`stripe webhook error: paymentInfo not found, payment_id: ${payment_id}`);
+        res.json('fail');
+        return;
+      }
+      const config = JSON.parse(paymentInfo.params);
+      const {data, type} = await stripe.constructEvent(config, req);
+      if (type !== 'checkout.session.completed') {
+        res.json('fail');
+        return;
+      }
+      const session = data.object as Stripe.Checkout.Session;
+      if (session.status !== 'complete') {
+        logger.error(`stripe webhook error: session status not complete, payment_id: ${payment_id}`);
+        res.json('fail');
+        return;
+      }
+      const {payment_intent, metadata} = session;
+      if (!metadata || !metadata.order_id) {
+        logger.error(`stripe webhook error: metadata or metadata.order_id not found, payment_id: ${payment_id}`);
+        res.json('fail');
+        return;
+      }
+      const orderInfo = await Order.findByPk(metadata.order_id, {raw: true});
+      if (!orderInfo || orderInfo.trade_status !== 'TRADE_AWAIT') {
+        logger.error(`stripe webhook error: orderInfo not found or orderInfo.trade_status not TRADE_AWAIT, payment_id: ${payment_id}`);
+        res.json('fail');
+        return;
+      }
+      if (!await stripe.checkChargeIsSuccess(config, payment_intent as string)) {
+        logger.error(`stripe webhook error: checkChargeIsSuccess fail, payment_id: ${payment_id}`);
+        res.json('fail');
+        return;
+      }
+      const modifyResult = await batchModify({
+        order_id: metadata.order_id,
+        trade_status: 'TRADE_SUCCESS',
+        trade_no: payment_intent,
+        notify_info: JSON.stringify(req.body),
+        user_id: orderInfo.user_id,
+        product_id: orderInfo.product_id
+      });
+      if (!modifyResult) {
+        res.json('fail');
+        return;
+      }
+    } catch (e) {
+      logger.error(`pay notify error: ${e}`);
     }
-    const config = JSON.parse(paymentInfo.params);
-    const {data, type} = await stripe.constructEvent(config, req);
-    if (type !== 'checkout.session.completed') {
-      res.json('fail');
-      return;
+    res.json('success');
+});
+
+router.get('/invited', async (req, res) => {
+  const user_id = req.user_id!;
+  // 获取已邀请人数
+  const invitedCount = await User.count({
+    where: {
+      invite_by: user_id
     }
-    const session = data.object as Stripe.Checkout.Session;
-    if (session.status !== 'complete') {
-      logger.error(`stripe webhook error: session status not complete, payment_id: ${payment_id}`);
-      res.json('fail');
-      return;
-    }
-    const {payment_intent, metadata} = session;
-    if (!metadata || !metadata.order_id) {
-      logger.error(`stripe webhook error: metadata or metadata.order_id not found, payment_id: ${payment_id}`);
-      res.json('fail');
-      return;
-    }
-    const orderInfo = await Order.findByPk(metadata.order_id, {raw: true});
-    if (!orderInfo || orderInfo.trade_status !== 'TRADE_AWAIT') {
-      logger.error(`stripe webhook error: orderInfo not found or orderInfo.trade_status not TRADE_AWAIT, payment_id: ${payment_id}`);
-      res.json('fail');
-      return;
-    }
-    if (!await stripe.checkChargeIsSuccess(config, payment_intent as string)) {
-      logger.error(`stripe webhook error: checkChargeIsSuccess fail, payment_id: ${payment_id}`);
-      res.json('fail');
-      return;
-    }
-    const modifyResult = await batchModify({
-      order_id: metadata.order_id,
-      trade_status: 'TRADE_SUCCESS',
-      trade_no: payment_intent,
-      notify_info: JSON.stringify(req.body),
-      user_id: orderInfo.user_id,
-      product_id: orderInfo.product_id
-    });
-    if (!modifyResult) {
-      res.json('fail');
-      return;
-    }
-  } catch (e){
-    logger.error(`pay notify error: ${e}`);
-  }
-  res.json('success');
+  });
+  res.json(ApiResponse.success({invited_count: invitedCount}));
 });
 
 export default router;

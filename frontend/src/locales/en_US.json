@@ -184,5 +184,8 @@
 	"确定删除此插件吗？": "Are you sure you want to delete this plugin？",
 	"先保存插件内容再新增方法": "Save the plugin content first and then add the method",
 	"隐私政策": "Privacy Policy",
-	"服务条款": "Terms of Service"
+	"服务条款": "Terms of Service",
+	"密码": "Password",
+	"邀请码": "Invitation code",
+	"项目地址": "Project Address"
 }

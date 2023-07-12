@@ -1,4 +1,4 @@
-import {createPlugin, initPlugin} from "../../src/chatgpt/plugins";
+import {createPlugin, initPlugin} from "../../src/ai/openai/plugins";
 import * as path from "path";
 import * as fs from "fs";
 

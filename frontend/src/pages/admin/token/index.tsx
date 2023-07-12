@@ -13,7 +13,7 @@ import {
 import {Button, Form, message, Tag} from 'antd';
 import {useRef, useState} from 'react';
 
-const modelsAll = [
+const openaiModels = [
 	{
 		label: 'gpt-3.5-turbo',
 		value: 'gpt-3.5-turbo'
@@ -62,7 +62,53 @@ const modelsAll = [
 		label: 'DALL·E绘画',
 		value: 'dall-e'
 	}
-]
+];
+const anthropicModels = [
+	{
+		label: 'claude-1',
+		value: 'claude-1'
+	},
+	{
+		label: 'claude-1-100k',
+		value: 'claude-1-100k'
+	},
+	{
+		label: 'claude-instant-1',
+		value: 'claude-instant-1'
+	},
+	{
+		label: 'claude-instant-1-100k',
+		value: 'claude-instant-1-100k'
+	},
+	{
+		label: 'claude-1.3',
+		value: 'claude-1.3'
+	},
+	{
+		label: 'claude-1.3-100k',
+		value: 'claude-1.3-100k'
+	},
+	{
+		label: 'claude-1.2',
+		value: 'claude-1.2'
+	},
+	{
+		label: 'claude-1.0',
+		value: 'claude-1.0'
+	},
+	{
+		label: 'claude-instant-1.1',
+		value: 'claude-instant-1.1'
+	},
+	{
+		label: 'claude-instant-1.1-100k',
+		value: 'claude-instant-1.1-100k'
+	},
+	{
+		label: 'claude-instant-1.0',
+		value: 'claude-instant-1.0'
+	}
+];
 
 function TokenPage() {
 
@@ -81,7 +127,12 @@ function TokenPage() {
 		{
 			title: 'ID',
 			dataIndex: 'id',
-			width: 180,
+			width: 60,
+		},
+		{
+			title: '厂商',
+			dataIndex: 'supplier',
+			width: 80,
 		},
 		{
 			title: 'KEY',
@@ -308,9 +359,31 @@ function TokenPage() {
 					rules={[{required: true, message: '请输入Key'}]}
 				/>
 				<ProFormSelect
+					name="supplier"
+					label="厂商"
+					request={async () => [
+						{
+							label: 'OpenAI',
+							value: 'openai'
+						},
+						{
+							label: 'Anthropic',
+							value: 'anthropic'
+						},
+					]}
+					placeholder="请选择厂商"
+					rules={[
+						{
+							required: true,
+							message: '请选择厂商!',
+						},
+					]}
+				/>
+				<ProFormSelect
+					shouldUpdate={(prevValues, curValues) => prevValues.supplier !== curValues.supplier}
 					name="models"
 					label="适用模型"
-					request={async () => modelsAll}
+					request={async () => form.getFieldValue('supplier') === 'openai' ? openaiModels : anthropicModels}
 					fieldProps={{
 						mode: 'multiple',
 					}}

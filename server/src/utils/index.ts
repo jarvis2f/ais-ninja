@@ -19,7 +19,7 @@ export default {
     return {page, page_size};
   },
   random_string(len: number): string {
-    const $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz123456789';
+    const $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz1234567890';
     const maxPos = $chars.length;
     let pwd = '';
     for (let i = 0; i < len; i++) {

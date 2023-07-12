@@ -3,19 +3,16 @@ import {initSequelize} from './config/db';
 import {initRedisClient} from './config/redis';
 import express from 'express';
 import 'express-async-errors';
-import i18next from 'i18next';
-import i18NexFsBackend from 'i18next-fs-backend';
-import i18NextHttpMiddleware from 'i18next-http-middleware';
 import cors from 'cors';
 import routes from './routes/index';
 import auth from './middleware/auth';
 import error_handler from "./middleware/error_handler";
 import {getLogger} from "./utils/logger";
 import res_handler from "./middleware/res_handler";
-import {initClients} from "./chatgpt";
+import {initClients} from "./ai";
 import {config} from "./config/config";
-import path from "path";
-import {initPlugin} from "./chatgpt/plugins";
+import {initPlugin} from "./ai/openai/plugins";
+import {i18n} from "./middleware/i18n";
 
 let logger = getLogger('app');
 
@@ -25,12 +22,8 @@ export const startServer = async () => {
     await initSequelize();
     await initRedisClient();
 
-    // 初始化 OpenAI clients
-    initClients().then(() => {
-      logger.info("OpenAI clients initialized");
-    }).catch((err) => {
-      logger.error("OpenAI clients initialization failed: " + err);
-    });
+    // 初始化 AI clients
+    initClients();
 
     // 初始化插件
     initPlugin().then(() => {
@@ -38,21 +31,8 @@ export const startServer = async () => {
     });
 
     const app = express();
-    app.use(res_handler)
-    // app.use(PinoHttp);
-    // 初始化 i18next
-    await i18next
-      .use(i18NexFsBackend)
-      .use(i18NextHttpMiddleware.LanguageDetector)
-      .init({
-        // debug: true,
-        backend: {
-          loadPath: path.join(__dirname, './locales/{{lng}}.json'), // 指定语言文件路径
-        },
-        fallbackLng: 'en_US', // 默认语言
-        preload: ['en_US', 'zh_CN'], // 预加载的语言
-      });
-    app.use(i18NextHttpMiddleware.handle(i18next));
+    app.use(await i18n());
+    app.use(res_handler);
     app.use(cors());
     app.all('/api/u/stripe/webhook', express.raw({type: 'application/json'}));
     app.use(express.json());

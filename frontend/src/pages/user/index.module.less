@@ -1,4 +1,4 @@
-.userPage{
+.user_center{
     &_container{
 		width: 100%;
 		max-width: 1000px;
@@ -24,6 +24,34 @@
         padding-block: 0;
     }
 
+	&_invite{
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		&_intro {
+			font-size: 16px;
+			line-height: 24px;
+		}
+		&_code {
+			font-size: 48px;
+			font-weight: bold;
+			margin: 20px 0;
+			@keyframes code_flow {
+				0% { background-position: 0 25%; }
+				50% { background-position: 50% 100%; }
+			}
+			background: linear-gradient(to right, #FF7F50, #8A2BE2, #00a86b, #7FFF00);
+			background-size: 500% 100%;
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			animation: code_flow 3s linear infinite;
+		}
+		&_count {
+			margin: 20px 0;
+		}
+	}
+
     &_operate{
         margin-top: 20px;
         display: flex;
@@ -32,7 +60,7 @@
 
     &_signin{
         display: flex;
-        flex-wrap: wrap;    
+        flex-wrap: wrap;
         gap: 12px 12px;
         &_item{
             cursor: pointer;

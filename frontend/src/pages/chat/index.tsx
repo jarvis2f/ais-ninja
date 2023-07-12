@@ -133,7 +133,7 @@ ${JSON.stringify(response, null, 4)}
 			const text = new TextDecoder('utf-8').decode(value)
 			const texts = handleChatData(text)
 			for (let i = 0; i < texts.length; i++) {
-				const {dateTime, role, content, segment, plugin} = texts[i]
+				const {dateTime, role, content, segment, plugins} = texts[i]
 				allContent += content ? content : ''
 
 				if (segment === 'stop' || segment === 'start' || segment === 'error') {
@@ -181,6 +181,7 @@ ${JSON.stringify(response, null, 4)}
 				}
 
 				if (segment && segment.startsWith('function')) {
+					const plugin = plugins && plugins.length > 0 ? plugins[0] : {}
 					setChatDataInfo(selectChatId, assistantMessageId, {
 						text: allContent,
 						dateTime,
@@ -266,9 +267,9 @@ ${JSON.stringify(response, null, 4)}
 						item.id === selectChatId ? `${styles.menuItem} ${styles.menuItem_action}` : styles.menuItem
 					return (
 						<div className={className}>
-              <span className={styles.menuItem_icon}>
-                <CommentOutlined/>
-              </span>
+							<span className={styles.menuItem_icon}>
+								<CommentOutlined/>
+							</span>
 							<span className={styles.menuItem_name}>{item.name}</span>
 							<div className={styles.menuItem_options}>
 								<Popconfirm

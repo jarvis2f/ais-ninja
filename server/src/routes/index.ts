@@ -1,7 +1,8 @@
 import {Express} from 'express';
+import u_ai_router from './user/ai';
 import u_user_router from './user/user';
 import u_code_router from './user/code';
-import u_openai_router from './user/openai';
+import u_plugin_router from './user/plugin';
 import a_config_router from './admin/config';
 import a_action_router from './admin/action';
 import a_redemption_code_router from './admin/redemption_code';
@@ -22,7 +23,8 @@ export default (app: Express) => {
   // client interface
   app.use('/api/u', u_user_router);
   app.use('/api/u/code', u_code_router);
-  app.use('/api/u', u_openai_router);
+  app.use('/api/u', u_plugin_router);
+  app.use('/api/u', u_ai_router);
 
   // Management interface
   app.use('/api/a/action', a_action_router);

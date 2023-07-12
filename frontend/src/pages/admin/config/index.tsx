@@ -10,6 +10,8 @@ function ConfigPage() {
 	const [rewardForm] = Form.useForm<{
 		register_reward: number | string
 		signin_reward: number | string
+		invitee_reward: number | string
+		inviter_reward: number | string
 	}>()
 
 	const [historyMessageForm] = Form.useForm<{
@@ -33,23 +35,26 @@ function ConfigPage() {
 	}>()
 
 	function getConfigValue(key: string, data: Array<ConfigInfo>) {
-		const value = data.filter((c) => c.name === key)[0]
-		return value
+		return data.filter((c) => c.name === key)[0]
 	}
 
 	function onRewardFormSet(data: Array<ConfigInfo>) {
 		const registerRewardInfo = getConfigValue('register_reward', data)
 		const signinRewardInfo = getConfigValue('signin_reward', data)
+		const inviteeRewardInfo = getConfigValue('invitee_reward', data)
+		const inviterRewardInfo = getConfigValue('inviter_reward', data)
 		const historyMessageCountInfo = getConfigValue('history_message_count', data)
 		const ai3Ratio = getConfigValue('ai3_ratio', data)
 		const ai4Ratio = getConfigValue('ai4_ratio', data)
 		const drawUsePrice = getConfigValue('draw_use_price', data)
 		rewardForm.setFieldsValue({
-			register_reward: registerRewardInfo.value,
-			signin_reward: signinRewardInfo.value
+			register_reward: registerRewardInfo?.value || 0,
+			signin_reward: signinRewardInfo?.value || 0,
+			invitee_reward: inviteeRewardInfo?.value || 0,
+			inviter_reward: inviterRewardInfo?.value || 0
 		})
 		historyMessageForm.setFieldsValue({
-			history_message_count: Number(historyMessageCountInfo.value)
+			history_message_count: Number(historyMessageCountInfo?.value || 10)
 		})
 		aiRatioForm.setFieldsValue({
 			ai3_ratio: Number(ai3Ratio.value),
@@ -145,6 +150,7 @@ function ConfigPage() {
 						<ProFormDigit
 							name="register_reward"
 							label="注册奖励"
+							labelCol={{span: 8}}
 							tooltip="新用户注册赠送积分数量"
 							min={0}
 							max={100000}
@@ -152,7 +158,24 @@ function ConfigPage() {
 						<ProFormDigit
 							name="signin_reward"
 							label="签到奖励"
+							labelCol={{span: 8}}
 							tooltip="每日签到赠送积分数量"
+							min={0}
+							max={100000}
+						/>
+						<ProFormDigit
+							name="invitee_reward"
+							label="邀请者奖励"
+							labelCol={{span: 8}}
+							tooltip="邀请新用户注册赠送积分数量"
+							min={0}
+							max={100000}
+						/>
+						<ProFormDigit
+							name="inviter_reward"
+							label="受邀者奖励"
+							labelCol={{span: 8}}
+							tooltip="被邀请新用户注册赠送积分数量"
 							min={0}
 							max={100000}
 						/>

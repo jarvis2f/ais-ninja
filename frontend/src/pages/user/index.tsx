@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useState} from 'react'
 import {Button, Form, message, Space} from 'antd'
 import Layout from '@/components/Layout'
-import {getCode, getSigninList, postSignin} from '@/request/api'
+import {getCode, getInvited, getSigninList, postSignin} from '@/request/api'
 import {userAsync} from '@/store/async'
 import {configStore, userStore} from '@/store'
 import styles from './index.module.less'
@@ -20,10 +20,11 @@ function UserPage() {
 	const {t} = useTranslation()
 	const navigate = useNavigate()
 	const {token, user_info} = userStore()
-	const {user_introduce} = configStore()
+	const {user_introduce, inviter_reward, invitee_reward, server_domain} = configStore()
 	const [userAccountForm] = Form.useForm()
 	const [signinLoading, setSigninLoading] = useState(false)
 	const [signinList, setSigninList] = useState<Array<SigninInfo>>([])
+	const [invitedCount, setInvitedCount] = useState(0)
 
 	const [userAccountModal, setUserAccountModal] = useState({
 		open: false,
@@ -57,18 +58,35 @@ function UserPage() {
 		return dataList
 	}, [signinList])
 
+	const invite_url = useMemo(() => {
+		if (!server_domain) {
+			// 获取当前域名
+			const {protocol, host} = window.location
+			return `${protocol}//${host}/login?aff=${user_info?.invite_code}`
+		} else {
+			return `${server_domain}/login?aff=${user_info?.invite_code}`
+		}
+	}, [server_domain])
+
 	useEffect(() => {
 		onFetchSigninList()
 	}, [])
 
+	useEffect(() => {
+		getInvited().then((res) => {
+			if (res.code) return
+			setInvitedCount(res.data?.invited_count);
+		});
+	}, [])
+
 	return (
-		<div className={styles.userPage}>
+		<div className={styles.user_center}>
 			<Layout>
-				<div className={styles.userPage_container}>
+				<div className={styles.user_center_container}>
 					<Space direction="vertical" style={{width: '100%'}}>
 						{/* 用户信息 */}
 						<UserInfoCard info={user_info}>
-							<div className={styles.userPage_operate}>
+							<div className={styles.user_center_operate}>
 								{/* <Button block
                                     onClick={() => {
                                         setUserAccountModal({
@@ -103,7 +121,7 @@ function UserPage() {
 							</div>
 						</UserInfoCard>
 						{user_introduce && (
-							<div className={styles.userPage_card}>
+							<div className={styles.user_center_card}>
 								<h4>{t('公告')}</h4>
 								<div
 									dangerouslySetInnerHTML={{
@@ -112,15 +130,37 @@ function UserPage() {
 								/>
 							</div>
 						)}
+						<div className={`${styles.user_center_card}`}>
+							<h4>{t('我的邀请码')}</h4>
+							<div className={styles.user_center_invite}>
+								<p className={styles.user_center_invite_intro}>{t(`您可获得${invitee_reward}积分，您邀请的好友可获得${inviter_reward}积分`)}</p>
+								<p className={styles.user_center_invite_code}>{user_info?.invite_code}</p>
+								<Button
+									type="primary"
+									size="small"
+									onClick={() => {
+										if (user_info?.invite_code) {
+											navigator.clipboard.writeText(invite_url);
+											message.success(t('复制成功'));
+										}
+									}}
+								>
+									{t('复制邀请链接')}
+								</Button>
+								<p className={styles.user_center_invite_count}>
+									{t('已邀请好友数量')}：{invitedCount}
+								</p>
+							</div>
+						</div>
 						{/* 签到区域 */}
-						<div className={styles.userPage_card}>
+						<div className={styles.user_center_card}>
 							<h4>{t('签到日历')}（{formatTime('yyyy年MM月', new Date(monthDays[0]))}）</h4>
 							<Space direction="vertical">
-								<div className={styles.userPage_signin}>
+								<div className={styles.user_center_signin}>
 									{monthDays.map((item) => {
 										const itemClassName = userMonthDays.includes(item)
-											? `${styles.userPage_signin_item} ${styles.userPage_signin_selectTtem}`
-											: styles.userPage_signin_item
+											? `${styles.user_center_signin_item} ${styles.user_center_signin_selectTtem}`
+											: styles.user_center_signin_item
 										return (
 											<div key={item} className={itemClassName}>
 												<p>{formatTime('dd', new Date(item)) === formatTime('dd') ? '今' : formatTime('dd', new Date(item))}</p>

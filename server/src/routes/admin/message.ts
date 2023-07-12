@@ -13,7 +13,7 @@ router.get('/', async function (req, res) {
     {
       limit: page_size,
       offset: page * page_size,
-      order: [['create_time', 'DESC']],
+      order: [['id', 'DESC']],
       include: [{model: User, as: 'user'}],
     }
   )));
