@@ -1,4 +1,5 @@
 import * as util from "util";
+import {randomUUID} from "crypto";
 
 export default {
   getClientIP: (req: any) => {
@@ -19,13 +20,27 @@ export default {
     return {page, page_size};
   },
   random_string(len: number): string {
-    const $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz123456789';
+    const $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz1234567890';
     const maxPos = $chars.length;
     let pwd = '';
     for (let i = 0; i < len; i++) {
       pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
     }
     return pwd;
+  },
+  generateApiKey(): string {
+    let key = this.random_string(16);
+    const uuid = randomUUID().replace(/-/g, '');
+
+    for (let i = 0; i < 32; i++) {
+      let c = uuid.charAt(i);
+      if (i % 2 === 0 && c >= 'a' && c <= 'z') {
+        c = c.toUpperCase();
+      }
+      key += c;
+    }
+
+    return key;
   },
   getKeyByValue<T extends Record<string, unknown>>(object: T, value: string): keyof T | undefined {
     return Object.keys(object).find(key => object[key] === value);

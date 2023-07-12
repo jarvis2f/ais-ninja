@@ -1,7 +1,7 @@
 import {DataTypes} from 'sequelize';
 import {Column, Model, Table} from "sequelize-typescript";
 import {getLogger} from "../utils/logger";
-import {available_models} from "../chatgpt";
+import {supplierClientAgent} from "../ai";
 
 const logger = getLogger('models/Token');
 
@@ -14,6 +14,7 @@ interface TokenAttributes {
   limit?: number;
   usage?: number;
   status?: number;
+  supplier?: string;
   create_time: Date;
   update_time: Date;
 }
@@ -71,6 +72,11 @@ class Token extends Model<TokenAttributes> implements TokenAttributes {
   })
   public status?: number;
   @Column({
+    type: DataTypes.STRING,
+    defaultValue: ''
+  })
+  public supplier?: string;
+  @Column({
     type: DataTypes.DATE,
     allowNull: false,
     defaultValue: DataTypes.NOW
@@ -83,7 +89,14 @@ class Token extends Model<TokenAttributes> implements TokenAttributes {
   })
   public update_time!: Date;
 
-  public static async add(param: { models: any; host: any; key: any; remarks: any; status: any }): Promise<Token> {
+  public static async add(param: {
+    models: any;
+    supplier: string;
+    host: any;
+    key: any;
+    remarks: any;
+    status: any;
+  }): Promise<Token> {
     return Token.create({
       ...param,
     } as TokenAttributes, {
@@ -93,6 +106,7 @@ class Token extends Model<TokenAttributes> implements TokenAttributes {
 
   public static async edit(param: {
     models: any;
+    supplier: string;
     host: any;
     id: any;
     key: any;
@@ -114,13 +128,13 @@ class Token extends Model<TokenAttributes> implements TokenAttributes {
       raw: true
     }).then((tokens) => {
       if (tokens.length === 0) {
-        logger.warn("No OpenAI tokens provided");
+        logger.warn("No ChatGPT tokens provided");
         return;
       }
       let models = new Set(tokens.flatMap((token) => {
         return token.models?.split(",");
       }));
-      return available_models.filter((model) => {
+      return supplierClientAgent.getAllAvailableModels().filter((model) => {
         return models.has(model.value);
       });
     });

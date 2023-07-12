@@ -2,11 +2,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as util from "util";
 import {makeResolverFromLegacyOptions, NodeVM} from 'vm2';
-import {getLogger} from "../../utils/logger";
+import {getLogger} from "../../../utils/logger";
 import fetch from 'node-fetch';
 import {CreateCompletionRequest} from "openai/api";
-import {getRandomClient} from "../index";
 import {CreateChatCompletionRequest} from "openai";
+import {supplierClientAgent} from "../../index";
+import OpenAIApiProxy from "../OpenAIApiProxy";
 
 const exec = util.promisify(require('child_process').exec);
 
@@ -148,7 +149,7 @@ async function createCompletion(createCompletionRequest: CreateCompletionRequest
     ...createCompletionRequest,
     model: createCompletionRequest.model || 'text-davinci-002',
   }
-  let openAIApi = getRandomClient(request.model)[1];
+  let openAIApi = supplierClientAgent.getRandomClient(request.model, {user_id: 1, api_key_id: 1})[1] as OpenAIApiProxy;
   return openAIApi.createCompletion(request, {
     transformResponse: (data) => {
       if (logger.isLevelEnabled('debug')) {
@@ -173,7 +174,7 @@ async function createChatCompletion(createChatCompletionRequest: CreateChatCompl
     stream: false,
     model: createChatCompletionRequest.model || 'gpt-3.5-turbo-16k-0613',
   }
-  let openAIApi = getRandomClient(request.model)[1];
+  let openAIApi = supplierClientAgent.getRandomClient(request.model, {user_id: 1, api_key_id: 1})[1] as OpenAIApiProxy;
   return openAIApi.createChatCompletion(request, {
     transformResponse: (data) => {
       if (logger.isLevelEnabled('debug')) {

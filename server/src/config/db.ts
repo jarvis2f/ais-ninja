@@ -11,6 +11,8 @@ import {Functions} from "../models/Functions";
 import {UserInstalledPlugin} from "../models/UserInstalledPlugin";
 import {config} from "./config";
 import pino from "pino";
+import {UserApiKey} from "../models/UserApiKey";
+import {UserApiKeyUsage} from "../models/UserApiKeyUsage";
 
 const models_path = path.join(__dirname, '../models/*.ts');
 let logger = getLogger('db');
@@ -61,6 +63,9 @@ function binding_relation() {
   Plugin.hasMany(Functions, {foreignKey: 'plugin_id', sourceKey: 'id', as: 'functions'});
   Plugin.belongsTo(User, {foreignKey: 'creator_id', targetKey: 'id', as: 'creator'});
   User.hasMany(Plugin, {foreignKey: 'creator_id', sourceKey: 'id', as: 'plugins'});
+  User.hasMany(UserApiKey, {foreignKey: 'user_id', sourceKey: 'id', as: 'api_keys'})
+  UserApiKeyUsage.belongsTo(UserApiKey, {foreignKey: 'api_key_id', targetKey: 'id', as: 'api_key', onDelete: 'SET 0'});
+  UserApiKeyUsage.belongsTo(User, {foreignKey: 'user_id', targetKey: 'id', as: 'user', onDelete: 'SET 0'});
   User.belongsToMany(Plugin, {through: UserInstalledPlugin, foreignKey: 'user_id', as: 'installed_plugins'});
   Plugin.belongsToMany(User, {through: UserInstalledPlugin, foreignKey: 'plugin_id', as: 'installed_users'});
 }

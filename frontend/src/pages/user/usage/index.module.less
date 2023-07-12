@@ -1,0 +1,95 @@
+.usage {
+	padding: 0 24px;
+
+	&_help {
+		font-size: 14px;
+		line-height: 26px;
+		font-weight: 400;
+	}
+
+	&_month {
+		&_select {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			width: 150px;
+			margin-top: 14px;
+
+			&_left {
+				cursor: pointer;
+			}
+
+			&_right {
+				cursor: pointer;
+			}
+
+			&_center {
+				font-weight: bold;
+				margin: 0 10px;
+			}
+		}
+
+		&_chart {
+			margin-top: 20px;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 20px;
+		}
+	}
+
+	&_daily {
+		width: 70%;
+
+		&_title {
+			font-weight: 500;
+			padding: 10px 0;
+		}
+
+		&_select {
+			padding: 10px 0;
+		}
+
+		:global {
+			.ant-collapse-header {
+				:after {
+					content: '';
+					position: absolute;
+					bottom: 0;
+					left: 0;
+					width: 100%;
+					height: 1px;
+					background-color: #ece6e6;
+				}
+			}
+
+			.ant-collapse-content-box {
+				padding: 16px 0 16px 16px;
+			}
+		}
+
+		&_label {
+			font-size: 14px;
+			line-height: 26px;
+
+			&_title {
+				font-weight: 600;
+				margin-right: 10px;
+			}
+
+			&_subtitle {
+				font-weight: 300;
+				color: #6e7781;
+			}
+		}
+
+		&_items_content {
+			&_model {
+				font-weight: 300;
+			}
+
+			&_tokens {
+
+			}
+		}
+	}
+}

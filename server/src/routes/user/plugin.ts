@@ -1,211 +1,13 @@
-import {Router} from "express";
 import ApiResponse from "../../utils/response";
-import {User} from "../../models/User";
-import {Config, ConfigNameEnum} from "../../models/Config";
-import {Message} from "../../models/Message";
-import {ChatCompletionRequestMessageRoleEnum} from "openai";
-import {Chat} from "../../chatgpt/Chat";
-import {Plugin} from "../../models/Plugin";
-import {Functions} from "../../models/Functions";
 import utils from "../../utils";
-import {UserInstalledPlugin} from "../../models/UserInstalledPlugin";
+import {User} from "../../models/User";
+import {Plugin} from "../../models/Plugin";
 import {sequelize} from "../../config/db";
-import {getRandomClient} from "../../chatgpt";
-import {Action, ActionTypeEnum} from "../../models/Action";
-import {RedemptionCodeTypeEnum} from "../../models/RedemptionCode";
-import {Turnover} from "../../models/Turnover";
-import {getLogger} from "../../utils/logger";
-import {GPTTokens} from "gpt-tokens";
-import {ChatCompletionRequestMessage, CreateImageRequestSizeEnum} from "openai/api";
-
+import {Functions} from "../../models/Functions";
+import {UserInstalledPlugin} from "../../models/UserInstalledPlugin";
+import {Router} from "express";
 
 const router = Router();
-const logger = getLogger('routes:user:openai');
-
-router.post('/chat/completions', async (req, res) => {
-  const user_id = req?.user_id;
-  if (!user_id) {
-    res.json(ApiResponse.miss());
-    return;
-  }
-  let user = await User.findByPk(user_id, {
-    include: [{
-      model: Plugin,
-      as: 'installed_plugins',
-      through: {},
-      include: [{
-        model: Functions,
-        as: 'functions'
-      }]
-    }]
-  }).then(user => user?.toJSON()) as User;
-  if (!(user!.integral! > 0 || user!.vip_expire_time >= new Date())) {
-    res.json(ApiResponse.error(500, req.t('余额不足')));
-    return;
-  }
-  const {prompt, parentMessageId, debug} = req.body;
-  const options = {
-    ...req.body.options,
-    stream: true,
-  };
-
-  if (options.model.includes('gpt-4') && user!.svip_expire_time! && user!.integral! <= 0) {
-    res.json(ApiResponse.error(500, req.t('GPT4为超级会员使用或用积分')));
-    return;
-  }
-
-  const history_message_count = await Config.getConfig(ConfigNameEnum.HISTORY_MESSAGE_COUNT);
-  const history_messages = await Message.findAll({
-    where: {
-      user_id,
-      parent_message_id: parentMessageId,
-    },
-    limit: history_message_count ? Number(history_message_count) : 100,
-    order: [['id', 'DESC']],
-    raw: true,
-  }).then((messages) => {
-    return messages.map((message: Message) => {
-      return {
-        role: message.role! as ChatCompletionRequestMessageRoleEnum,
-        content: message.content || ''
-      }
-    }).reverse();
-  });
-
-  // addUsageCheckTask({...token});
-
-  await new Chat(history_messages, options, res, parentMessageId)
-    .init_functions(user.installed_plugins || [])
-    .setDebug(debug)
-    .add_finish_callback(async (chatCompletions: ChatCompletionRequestMessage[]) => {
-      let completionResponseMessages = chatCompletions
-        .filter((item) => item.role === ChatCompletionRequestMessageRoleEnum.Assistant && item.content && item.content.length > 0);
-      await Message.bulkCreate([
-        {
-          user_id,
-          role: 'user',
-          content: prompt,
-          parent_message_id: parentMessageId,
-          ...options
-        },
-        ...completionResponseMessages.map((item) => {
-          return {
-            user_id,
-            role: item.role,
-            content: item.content,
-            parent_message_id: parentMessageId,
-            ...options
-          } as Message
-        }),
-      ])
-
-      let todayTime = new Date();
-
-      if ((options.model.includes('gpt-4') && user.svip_expire_time < todayTime) ||
-        (!options.model.includes('gpt-4') && user.vip_expire_time < todayTime)) {
-        let usageInfo = new GPTTokens({
-          model: options.model,
-          // @ts-ignore
-          messages: [
-            // @ts-ignore
-            ...history_messages,
-            {
-              // @ts-ignore
-              role: 'user',
-              content: prompt
-            },
-            ...completionResponseMessages
-          ]
-        });
-        const tokens = usageInfo.usedTokens;
-        const ai3_ratio = (await Config.getConfig(ConfigNameEnum.AI3_RATIO)) || 0;
-        const ai4_ratio = (await Config.getConfig(ConfigNameEnum.AI4_RATIO)) || 0;
-        let ratio = Number(ai3_ratio);
-        if (options.model.indexOf('gpt-4') !== -1) {
-          ratio = Number(ai4_ratio);
-        }
-        const integral = ratio ? Math.ceil(tokens / ratio) : 0;
-        await User.updateUserVIP({
-          user_id: user_id,
-          type: RedemptionCodeTypeEnum.INTEGRAL,
-          value: integral,
-          operate: 'decrement'
-        });
-        await Turnover.add(user_id, `{对话}(${options.model})`, `-${integral}{积分}`);
-      }
-
-      if (!res.writableEnded) {
-        res.end();
-      }
-    })
-    .chat({
-      role: ChatCompletionRequestMessageRoleEnum.User,
-      content: prompt
-    });
-
-  await Action.add(user_id, ActionTypeEnum.CHAT, utils.getClientIP(req), `对话(${options.model})`);
-
-});
-
-router.post('/images/generations', async (req, res) => {
-  const user_id = req?.user_id;
-  if (!user_id) {
-    res.json(ApiResponse.miss());
-    return;
-  }
-  const {prompt, n = 1, width = 256, height = 256, response_format = 'url'} = req.body;
-  const size = `${width}x${height}` as CreateImageRequestSizeEnum;
-  const user = await User.findByPk(user_id).then(user => user?.toJSON()) as User;
-  if (!user) {
-    res.json(ApiResponse.miss());
-    return;
-  }
-  const ip = utils.getClientIP(req);
-  let deductIntegral = 0;
-  const drawUsePrice = await Config.getConfig(ConfigNameEnum.DRAW_USE_PRICE);
-  if (drawUsePrice) {
-    const drawUsePriceJson = JSON.parse(drawUsePrice.toString());
-    for (const item of drawUsePriceJson) {
-      if (item.size === size) {
-        deductIntegral = Number(item.integral);
-      }
-    }
-  }
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayTime = today.getTime();
-  const vipExpireTime = new Date(user.vip_expire_time).getTime();
-  if (!(user.integral! > deductIntegral || vipExpireTime >= todayTime)) {
-    res.json(ApiResponse.error(500, req.t('余额不足')));
-    return;
-  }
-  const [_, openai] = getRandomClient('dall-e');
-  const response = await openai.createImage({
-    prompt,
-    n,
-    size,
-    response_format
-  }).catch((e) => {
-    logger.error(e);
-    return null;
-  });
-  if (!response) {
-    res.json(ApiResponse.error(500, req.t('生成失败')));
-    return;
-  }
-  if (vipExpireTime < todayTime) {
-    await User.updateUserVIP({
-      user_id: user_id,
-      type: RedemptionCodeTypeEnum.INTEGRAL,
-      value: deductIntegral,
-      operate: 'decrement'
-    });
-    await Turnover.add(user_id, `{绘画} ${size}`, `-${deductIntegral}{积分}`);
-  }
-  Action.add(user_id, ActionTypeEnum.DRAW, ip, `绘画(${size})`);
-  res.json(ApiResponse.success(response.data?.data));
-})
-
 router.get('/plugins', async (req, res) => {
   const user_id = req?.user_id;
   if (!user_id) {
@@ -403,7 +205,7 @@ router.post('/plugin', async (req, res) => {
     description,
     avatar,
     creator_id: user_id,
-    variables: variables? JSON.stringify(variables) : "",
+    variables: variables ? JSON.stringify(variables) : "",
   } as Plugin);
 
   res.json(ApiResponse.success(plugin));
@@ -434,7 +236,7 @@ router.put('/plugin/:id', async (req, res) => {
     name,
     description,
     avatar,
-    variables: variables? JSON.stringify(variables) : "",
+    variables: variables ? JSON.stringify(variables) : "",
   } as Plugin);
 
   res.json(ApiResponse.success(plugin));

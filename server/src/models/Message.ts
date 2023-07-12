@@ -1,10 +1,10 @@
 import {DataTypes, Optional} from 'sequelize';
 import {Column, Model, Table} from "sequelize-typescript";
-import utils from "../utils";
 
 interface MessageAttributes {
   id?: number;
   user_id: number;
+  name?: string,
   content: string;
   role: string;
   frequency_penalty?: number | null;
@@ -18,7 +18,7 @@ interface MessageAttributes {
   update_time: Date;
 }
 
-interface MessageCreationAttributes extends Optional<MessageAttributes, 'frequency_penalty' | 'max_tokens' | 'model' | 'presence_penalty' | 'temperature' | 'parent_message_id'> {
+interface MessageCreationAttributes extends Optional<MessageAttributes, 'name' | 'frequency_penalty' | 'max_tokens' | 'model' | 'presence_penalty' | 'temperature' | 'parent_message_id'> {
 }
 
 @Table({
@@ -44,6 +44,13 @@ class Message extends Model<MessageAttributes, MessageCreationAttributes> implem
     defaultValue: 0,
   })
   public user_id!: number;
+
+  @Column({
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: '',
+  })
+  public name?: string;
 
   @Column({
     type: DataTypes.TEXT,

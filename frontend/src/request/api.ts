@@ -1,16 +1,17 @@
 import {
-  FunctionInfo,
-  PluginInfo,
-  ProductInfo,
-  RequesPrepay,
-  RequestChatOptions,
-  RequestLoginParams,
-  RequestSocialLoginParams,
-  ResponseConfigData,
-  ResponseLoginData,
-  SigninInfo,
-  TurnoverInfo,
-  UserInfo
+	APIKeyInfo, APIKeyUsageDailyInfo, APIKeyUsageInfo,
+	FunctionInfo,
+	PluginInfo,
+	ProductInfo,
+	RequesPrepay,
+	RequestChatOptions,
+	RequestLoginParams,
+	RequestSocialLoginParams,
+	ResponseConfigData,
+	ResponseLoginData,
+	SigninInfo,
+	TurnoverInfo,
+	UserInfo
 } from '@/types'
 import request from '.'
 import {TableData} from "@/types/admin";
@@ -167,4 +168,24 @@ export function putPluginFunction(plugin_id: string, id: string, params: { name:
 
 export function deletePluginFunction(plugin_id: string, id: string) {
   return request.del(`/api/u/plugin/${plugin_id}/function/${id}`)
+}
+
+export function getAPIKeys(params: { page: number | undefined; page_size: number | undefined }) {
+	  return request.get<TableData<Array<APIKeyInfo>>>('/api/u/api-keys', params)
+}
+
+export function postAPIKey(params: { name: string }) {
+	  return request.post<APIKeyInfo>('/api/u/api-key', params)
+}
+
+export function deleteAPIKey(id: number) {
+	  return request.del(`/api/u/api-key/${id}`)
+}
+
+export function getAPIKeyUsage(params: { month: number }) {
+	  return request.get<APIKeyUsageInfo[]>(`/api/u/api-keys/usage`, params)
+}
+
+export function getAPIKeyUsageDaily(params: { date: string }) {
+	return request.get<APIKeyUsageDailyInfo[]>(`/api/u/api-keys/usage/daily`, params)
 }

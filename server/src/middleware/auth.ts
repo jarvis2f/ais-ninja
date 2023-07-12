@@ -20,7 +20,7 @@ async function auth(req: Request, res: Response, next: NextFunction): Promise<vo
 
   const filter = verifyPath.filter((router) => router.toUpperCase() === `${method}:${path}`.toUpperCase());
 
-  if (filter.length || path.indexOf('/api') === -1) {
+  if (filter.length || path.indexOf('/api') === -1 || path.startsWith('/v1')) {
     await next();
     return;
   }

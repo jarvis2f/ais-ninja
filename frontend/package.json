@@ -18,6 +18,7 @@
   "dependencies": {
     "@ant-design/icons": "^5.0.1",
     "@ant-design/pro-components": "2.6.4",
+    "@antv/g2": "^5.0.15",
     "@babel/parser": "^7.22.5",
     "@codemirror/lang-javascript": "^6.1.9",
     "@codemirror/lang-json": "^6.0.1",
@@ -27,6 +28,7 @@
     "@types/prettier": "^2.7.3",
     "@uiw/react-codemirror": "^4.21.4",
     "antd": "5.6.2",
+    "dayjs": "^1.11.9",
     "eslint-linter-browserify": "^8.43.0",
     "framer-motion": "^10.12.16",
     "highlight.js": "^11.7.0",

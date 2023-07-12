@@ -9,7 +9,7 @@ type Props = {
     menuExtraRender?: () => React.ReactNode,
     route?: {
         path: string,
-        routes: Array<ChatsInfo>
+        routes: Array<ChatsInfo> | MenuDataItem
     },
     menuItemRender?:(item: MenuDataItem & {
         isUrl: boolean;
@@ -18,7 +18,8 @@ type Props = {
     menuDataRender?: ((menuData: MenuDataItem[]) => MenuDataItem[]),
     menuFooterRender?: (props?: any) => React.ReactNode,
     menuProps?: MenuProps,
-    children?: React.ReactNode
+    children?: React.ReactNode,
+	contentStyle?: React.CSSProperties
 }
 
 function Layout(props: Props) {
@@ -33,10 +34,10 @@ function Layout(props: Props) {
             fixedHeader
             fixSiderbar
             headerRender={HeaderRender}
-            contentStyle={{
-                height: 'calc(100vh - 56px)',
-                background: '#fff'
-            }}
+            contentStyle={props.contentStyle || {
+				height: 'calc(100vh - 56px)',
+				background: '#fff'
+			}}
             siderMenuType="group"
             style={{
                 background: '#fff'

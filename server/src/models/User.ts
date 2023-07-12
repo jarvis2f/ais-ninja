@@ -3,11 +3,23 @@ import crypto, {randomUUID} from 'crypto';
 import {Config, ConfigNameEnum} from "./Config";
 import {Turnover} from "./Turnover";
 import dayjs from "dayjs";
-import {RedemptionCodeTypeEnum} from "./RedemptionCode";
 import {Product, ProductTypeEnum} from "./Product";
 import {Column, Model, Table} from "sequelize-typescript";
 import {Plugin} from "./Plugin";
 import utils from "../utils";
+
+export enum UserRoleEnum {
+  USER = 'user',
+  ADMIN = 'administrator',
+}
+
+// 用户等级
+export enum UserLevelEnum {
+  NORMAL, // 普通用户
+  VIP, // 会员
+  PRO, // 专业版
+  BUSINESS, // 商业版
+}
 
 interface UserAttributes {
   id?: number;
@@ -17,7 +29,13 @@ interface UserAttributes {
   avatar: string;
   role: string;
   integral: number;
+  invite_code: string;
+  invite_by?: number;
+  level: number;
+  level_expire_time: Date;
+  //@deprecated
   vip_expire_time: Date;
+  //@deprecated
   svip_expire_time: Date;
   status: number;
   ip: string;
@@ -25,7 +43,7 @@ interface UserAttributes {
   update_time: Date;
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'integral' | 'status' | 'ip' | 'create_time' | 'update_time'> {
+interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'integral' | 'level' | 'level_expire_time' | 'status' | 'ip' | 'create_time' | 'update_time'> {
 }
 
 @Table({
@@ -90,7 +108,30 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
     defaultValue: 0,
   })
   public integral: number = 0;
-
+  @Column({
+    type: DataTypes.STRING(255),
+    allowNull: false,
+    defaultValue: '',
+  })
+  public invite_code!: string;
+  @Column({
+    type: DataTypes.BIGINT({unsigned: true}),
+    allowNull: false,
+    defaultValue: 0,
+  })
+  public invite_by?: number;
+  @Column({
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  })
+  public level!: number;
+  @Column({
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: dayjs().startOf('day').toDate(),
+  })
+  public level_expire_time!: Date;
   @Column({
     type: DataTypes.DATE,
     allowNull: false,
@@ -122,16 +163,12 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   @Column({
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: DataTypes.NOW
   })
   public create_time!: Date;
 
   @Column({
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: DataTypes.NOW,
-    onUpdate: 'NOW()',
-
   })
   public update_time!: Date;
 
@@ -139,7 +176,6 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   public installed_plugins?: Plugin[] | [];
 
   static TOKEN_SECRET = 'mVePJaeB3L7PKmKN';
-
 
 
   public static async getUserByAccount(account: string): Promise<User | null> {
@@ -150,14 +186,45 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
     });
   }
 
+  public static async getUserByInviteCode(invite_code: string): Promise<User | null> {
+    return User.findOne({
+      where: {
+        invite_code
+      }
+    });
+  }
+
   public static async add(account: string, password: string, ip: string,
                           name: string | undefined = void 0,
-                          picture: string | undefined = void 0): Promise<User | null> {
-    let register_reward = Number(await Config.getConfig(ConfigNameEnum.REGISTER_REWARD));
+                          picture: string | undefined = void 0,
+                          invite_by: number = 0): Promise<User | null> {
+    let register_reward = Number(await Config.getConfig(ConfigNameEnum.REGISTER_REWARD) || 0);
+    // 受邀人奖励
+    let invitee_reward = Number(await Config.getConfig(ConfigNameEnum.INVITEE_REWARD) || 0);
+    // 邀请人奖励
+    let inviter_reward = Number(await Config.getConfig(ConfigNameEnum.INVITER_REWARD || 0));
+    if (invite_by > 0) {
+      let invite_user = await User.findByPk(invite_by);
+      if (invite_user) {
+        register_reward += invitee_reward;
+        if (inviter_reward > 0) {
+          await User.updateUserIntegralOrLevelTime({
+            user_id: invite_by,
+            quantity: inviter_reward,
+            type: 1,
+            describe: '{邀请奖励}'
+          })
+        }
+      } else {
+        throw new Error('Invalid invite code');
+      }
+    }
     // @ts-ignore
     let user: UserCreationAttributes = {
       nickname: name || 'User' + randomUUID().substr(0, 5),
       account: account,
+      invite_code: await User.generateInviteCode(),
+      invite_by: invite_by,
       avatar: picture || 'https://s1.imgcap.xyz/bcc944df79b3a1f86cd5d6d5eb58485d.png',
       integral: register_reward,
       password: User.encryPassword(password ? password : utils.random_string(8) + '1'),
@@ -172,14 +239,16 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
     return User.findByPk(user.id!);
   }
 
-  public static async initAdministrator(): Promise<{account: string, password: string} | boolean> {
+  public static async initAdministrator(): Promise<{ account: string, password: string } | boolean> {
     if (await User.findOne({where: {role: 'administrator'}})) {
       return false;
     }
+
     const password = utils.random_string(8) + '1';
     let user: UserCreationAttributes = {
       nickname: 'Admin',
       account: 'admin_' + utils.random_string(4),
+      invite_code: await User.generateInviteCode(),
       avatar: 'https://s1.imgcap.xyz/bcc944df79b3a1f86cd5d6d5eb58485d.png',
       integral: 0,
       password: User.encryPassword(password),
@@ -189,7 +258,16 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
       status: 1
     }
     user = (await User.create(user)).toJSON();
-    return { account: user.account, password: password };
+    return {account: user.account, password: password};
+  }
+
+  private static async generateInviteCode(): Promise<string> {
+    // 生成邀请码
+    let invite_code;
+    do {
+      invite_code = utils.random_string(4).toUpperCase();
+    } while (await User.findOne({where: {invite_code}}));
+    return invite_code;
   }
 
   public static async updatePassword(user_id: number, password: any) {
@@ -206,7 +284,7 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
     return crypto.createHash('md5').update(password).digest('hex');
   }
 
-  async checkPassword(password: string) {
+  public async checkPassword(password: string) {
     return await User.findOne({
       where: {
         id: this.id,
@@ -220,69 +298,72 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
     return crypto.createHash('md5').update(encrypted).digest('hex');
   }
 
-  static async updateUserVIP(params: {
-    operate: string;
-    user_id: number;
-    level?: number | null | undefined;
-    type: RedemptionCodeTypeEnum;
-    value: number
+  // 增减用户积分
+  public static async updateUserIntegralOrLevelTime(params: {
+    user_id: number,
+    quantity: number,
+    // 1: 积分 2：等级天数
+    type: number,
+    describe?: string,
+    level?: number | undefined,
   }) {
-    const user = await User.findByPk(params.user_id);
-    if (params.type === RedemptionCodeTypeEnum.INTEGRAL) {
-      if (params.operate === 'decrement') {
-        user?.decrement('integral', {
-          by: params.value
+    let {user_id, quantity, type, describe, level} = params;
+    const user = await User.findByPk(user_id);
+    let turnover = '';
+    if (!user)
+      throw new Error('User not found');
+    if (type === 1) {
+      if (quantity > 0) {
+        user.increment('integral', {
+          by: quantity
         });
-      } else if (params.operate === 'increment') {
-        user?.increment('integral', {
-          by: params.value
-        });
-      }
-    } else if (params.type === RedemptionCodeTypeEnum.DAY) {
-      let vipTime = user!.vip_expire_time;
-      let svipTime = user!.svip_expire_time;
-      const todayTime = new Date();
-      if (vipTime < todayTime) {
-        // 这里是否减去1毫秒
-        vipTime = dayjs(todayTime).add(params.value, 'day').startOf('day').toDate();
       } else {
-        vipTime = dayjs(vipTime).add(params.value, 'day').startOf('day').toDate();
+        user.decrement('integral', {
+          by: Math.abs(quantity)
+        });
       }
-      if (params.level && params.level === 2) {
-        if (svipTime! < todayTime) {
-          // 这里是否减去1毫秒
-          svipTime = dayjs(todayTime).add(params.value, 'day').startOf('day').toDate();
-        } else {
-          svipTime = dayjs(svipTime).add(params.value, 'day').startOf('day').toDate();
-        }
+      turnover = `${quantity}{积分}`;
+    } else {
+      // 给level_expire_time: Date 添加或者减少天数
+      let level_expire_time = user.get('level_expire_time');
+      if (level_expire_time === null)
+        level_expire_time = dayjs().startOf('day').toDate();
+      if (quantity > 0) {
+        level_expire_time = dayjs(level_expire_time).add(quantity, 'day').toDate();
+      } else {
+        level_expire_time = dayjs(level_expire_time).subtract(Math.abs(quantity), 'day').toDate();
       }
-      await User.update({vip_expire_time: vipTime, svip_expire_time: svipTime}, {
-        where: {
-          id: params.user_id
-        }
+      await user.update({
+        level_expire_time
+      });
+      turnover = `${quantity}{天}`;
+    }
+    if (level && level >= 0) {
+      await user.update({
+        level
       });
     }
-    return true;
+    await Turnover.add(user_id, describe || '{系统}', turnover);
   }
 
-  static async addUserProductQuota(user_id: number, product: Product): Promise<boolean> {
+  public static async addUserProductQuota(user_id: number, product: Product): Promise<boolean> {
     if (product && user_id) {
       let subscribeDay = 0;
       let integral = 0;
-      let type: RedemptionCodeTypeEnum;
+      let type: number;
       if (product.type === ProductTypeEnum.INTEGRAL) {
         integral = product.value!;
-        type = RedemptionCodeTypeEnum.INTEGRAL;
-      } else if (product.type === ProductTypeEnum.DAY) {
+        type = 1;
+      } else {
         subscribeDay = product.value!;
-        type = RedemptionCodeTypeEnum.DAY;
+        type = 2;
       }
-      await User.updateUserVIP({
+      await User.updateUserIntegralOrLevelTime({
         user_id: user_id,
-        value: integral ? integral : subscribeDay,
-        type: type!,
+        quantity: type === 1 ? integral : subscribeDay,
+        type: type,
         level: product.level,
-        operate: 'increment'
+        describe: `{购买}-${product.title}`
       });
       return true;
     }
@@ -290,4 +371,6 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   }
 }
 
-export {User};
+export {
+  User
+};

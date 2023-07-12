@@ -15,7 +15,7 @@
   "余额不足": "Insufficient balance.",
   "未配置对应模型": "Corresponding model is not configured.",
   "生成失败": "Generation failed.",
-  "GPT4为超级会员使用或用积分": "GPT4 is for premium members or can be used with points.",
+  "GPT4为会员使用": "GPT 4 is for premium members",
   "卡密不存在": "Card code does not exist.",
   "卡密已被使用": "Card code has been used.",
   "卡密已过期": "Card code has expired.",
@@ -34,5 +34,6 @@
   "天": "days",
   "签到奖励": "Sign-in reward",
   "购买": "Purchase",
-  "无权限": "No permission"
+  "无权限": "No permission",
+  "API调用": "API calls"
 }

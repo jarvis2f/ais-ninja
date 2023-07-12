@@ -1,10 +1,12 @@
 import {NotificationInfo} from './admin'
 import React from "react";
+import {getAPIKeyUsage} from "@/request/api";
 
 export interface RequestLoginParams {
 	account: string
 	code?: string | number
 	password?: string
+	invite_code?: string
 }
 
 export interface RequestSocialLoginParams {
@@ -18,7 +20,10 @@ export interface UserInfo {
 	nickname: string
 	avatar: string
 	role: string
+	invite_code: string
 	integral: number
+	level: number
+	level_expire_time: string
 	vip_expire_time: string
 	svip_expire_time: string
 	ip: string
@@ -222,4 +227,33 @@ export interface FunctionInfo {
 	// 本地 是否修改
 	modified?: boolean
 	new?: boolean
+}
+
+export interface APIKeyInfo {
+	id: number,
+	name: string,
+	api_key: string,
+	create_time: string,
+	update_time: string,
+}
+
+export interface APIKeyUsageInfo {
+	date: string,
+	usage: number
+}
+
+export interface APIKeyUsageDailyInfo {
+	item: string,
+	request_count: number,
+	hourly: {
+		hour: number,
+		request_count: number,
+		models: {
+			time: string,
+			model: string,
+			request_count: number,
+			prompt_tokens: number,
+			completion_tokens: number,
+		}[]
+	}[]
 }

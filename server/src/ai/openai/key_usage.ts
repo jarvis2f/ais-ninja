@@ -1,21 +1,60 @@
 import fetch from 'node-fetch';
 import dayjs from "dayjs";
 import Bull, {Job, Queue} from 'bull';
-import {Token} from "../models/Token";
-import {config} from "../config/config";
+import {Token} from "../../models/Token";
+import {config} from "../../config/config";
+import {getLogger} from "../../utils/logger";
+
+const logger = getLogger('ai.openai.key_usage')
 
 interface SubscriptionData {
   hard_limit_usd?: number;
   has_payment_method?: boolean;
 }
 
-const CheckTokenQueue: Queue = new Bull('CheckTokenQueue', {
-  redis: config?.getConfigValue('redis.url'),
-  defaultJobOptions: {
-    removeOnComplete: false,
-    removeOnFail: false,
+let checkTokenQueue: Queue;
+
+function getQueue() {
+  if (!checkTokenQueue) {
+    logger.debug(`redis url ${config?.getConfigValue('redis.url')}`)
+    checkTokenQueue = new Bull('CheckTokenQueue', config?.getConfigValue('redis.url'), {
+      redis: {
+        maxRetriesPerRequest: 1,
+      },
+      defaultJobOptions: {
+        removeOnComplete: false,
+        removeOnFail: false,
+      }
+    });
+    // Process the job
+    checkTokenQueue.process(async (job: Job<{ id: number; key: string; host: string }>) => {
+      const {id, key, host} = job.data;
+      const check = await getKeyUsage(host, key);
+      let status = 1;
+      const limit = Number(check.hard_limit_usd);
+      const usage = Number(check.total_usage);
+
+      if (check.status) {
+        status = 0;
+      }
+      if (limit <= usage) {
+        status = 0;
+      }
+      await Token.upsert({
+        id: id,
+        limit,
+        usage,
+        status,
+      } as Token);
+      return;
+    }).then(r => {
+      logger.debug(`Check token finish. ${r}`)
+    }).catch((e) => {
+      logger.error(e)
+    })
   }
-});
+  return checkTokenQueue;
+}
 
 async function getKeyUsage(url: string, key: string): Promise<{
   status: number;
@@ -79,31 +118,10 @@ async function getKeyUsage(url: string, key: string): Promise<{
 
 // Add task to the queue
 async function addUsageCheckTask(data: { id?: number; key?: string; host?: string }, options: any = {}) {
-  return await CheckTokenQueue.add(data, options);
+  return await getQueue().add(data, options).catch(e => {
+    logger.error(`Add usage check task fail. ${e}`)
+  });
 }
-
-// Process the job
-CheckTokenQueue.process(async (job: Job<{ id: number; key: string; host: string }>) => {
-  const {id, key, host} = job.data;
-  const check = await getKeyUsage(host, key);
-  let status = 1;
-  const limit = Number(check.hard_limit_usd);
-  const usage = Number(check.total_usage);
-
-  if (check.status) {
-    status = 0;
-  }
-  if (limit <= usage) {
-    status = 0;
-  }
-  await Token.upsert({
-    id: id,
-    limit,
-    usage,
-    status,
-  } as Token);
-  return;
-});
 
 export {
   getKeyUsage,

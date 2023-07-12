@@ -37,6 +37,8 @@ export interface UserInfo {
   nickname: string
   avatar: string
   integral: number
+  level: number
+  level_expire_time: string
   vip_expire_time: string
   svip_expire_time: string
   ip: string
@@ -179,4 +181,20 @@ export interface NotificationInfo {
   status: number
   create_time: string
   update_time: string
+}
+
+export interface ApiKeyUsageInfo {
+	id: number;
+	user_id: number;
+	api_key_id: number;
+	model: string;
+	request?: string;
+	response?: string;
+	prompt_tokens: number;
+	completion_tokens: number;
+	prompt_integral: number;
+	completion_integral: number;
+	create_time: Date;
+	update_time: Date;
+	user?: UserInfo;
 }

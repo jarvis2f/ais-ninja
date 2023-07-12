@@ -1,18 +1,19 @@
 import {
-  CarmiInfo,
-  ConfigInfo,
-  MessageInfo,
-  NotificationInfo,
-  OrderInfo,
-  Paging,
-  PaymentInfo,
-  ProductInfo,
-  RequestAddCarmi,
-  SigninInfo,
-  TableData,
-  TokenInfo,
-  TurnoverInfo,
-  UserInfo
+	ApiKeyUsageInfo,
+	CarmiInfo,
+	ConfigInfo,
+	MessageInfo,
+	NotificationInfo,
+	OrderInfo,
+	Paging,
+	PaymentInfo,
+	ProductInfo,
+	RequestAddCarmi,
+	SigninInfo,
+	TableData,
+	TokenInfo,
+	TurnoverInfo,
+	UserInfo
 } from '@/types/admin'
 import request from '.'
 
@@ -178,4 +179,8 @@ export function putAdminNotification(params: NotificationInfo) {
 
 export function importPluginFunction(params: {url: string}) {
 	return request.post(`/api/a/plugin/import`, params)
+}
+
+export function getAdminUsage(params: Paging) {
+	return request.get<TableData<Array<ApiKeyUsageInfo>>>('/api/a/usage', params)
 }

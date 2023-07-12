@@ -1,7 +1,6 @@
 import {DataTypes} from 'sequelize';
 import {WhereOptions} from "sequelize/types/model";
 import {Column, Model, Table} from "sequelize-typescript";
-import utils from "../utils";
 
 enum ProductTypeEnum {
   INTEGRAL = 'integral',
@@ -93,7 +92,7 @@ class Product extends Model<ProductAttributes> implements ProductAttributes {
     type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: 1,
-    comment: '会员级别 1 普通 2会员 3超级会员',
+    comment: '会员级别 1 会员 2 专业版 3 商业版',
   })
   public level!: number;
 

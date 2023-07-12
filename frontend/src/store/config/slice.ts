@@ -20,7 +20,10 @@ export interface ConfigState {
 	notifications: Array<NotificationInfo>
 	shop_introduce: string
 	user_introduce: string,
+	invitee_reward: number,
+	inviter_reward: number,
 	login_methods?: string[],
+	server_domain?: string,
 	social?: {
 		google: {
 			client_id: string
@@ -36,6 +39,8 @@ const configStore = create<ConfigState>()(
 			notifications: [],
 			shop_introduce: '',
 			user_introduce: '',
+			invitee_reward: 0,
+			inviter_reward: 0,
 			models: [],
 			config: {
 				model: 'gpt-3.5-turbo',

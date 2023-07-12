@@ -1,5 +1,5 @@
 import {Router} from "express";
-import {User} from "../../models/User";
+import {User, UserLevelEnum} from "../../models/User";
 import ApiResponse from "../../utils/response";
 import utils from "../../utils";
 import alipay from "../../utils/alipay";
@@ -12,7 +12,7 @@ import {randomUUID} from "crypto";
 import dayjs from "dayjs";
 import {Product} from "../../models/Product";
 import {Payment} from "../../models/Payment";
-import {RedemptionCode, RedemptionCodeTypeEnum} from "../../models/RedemptionCode";
+import {RedemptionCode} from "../../models/RedemptionCode";
 import {Turnover} from "../../models/Turnover";
 import {Config, ConfigNameEnum} from "../../models/Config";
 import {Order} from "../../models/Order";
@@ -24,6 +24,8 @@ import {Token} from "../../models/Token";
 import Stripe from "stripe";
 import stripe from "../../utils/stripe";
 import {Op} from "sequelize";
+import {UserApiKey} from "../../models/UserApiKey";
+import {UserApiKeyUsage} from "../../models/UserApiKeyUsage";
 
 const router = Router();
 const logger = getLogger('routes:user:user');
@@ -33,6 +35,8 @@ router.get("/config", async (req, res) => {
   res.json(ApiResponse.success({
     shop_introduce: await Config.getConfig(ConfigNameEnum.SHOP_INTRODUCE),
     user_introduce: await Config.getConfig(ConfigNameEnum.USER_INTRODUCE),
+    invitee_reward: await Config.getConfig(ConfigNameEnum.INVITEE_REWARD),
+    inviter_reward: await Config.getConfig(ConfigNameEnum.INVITER_REWARD),
     notifications: Notification.getNormalNotifications(),
     social: {
       google: {
@@ -40,16 +44,21 @@ router.get("/config", async (req, res) => {
       }
     },
     login_methods: login_methods,
-    models: await Token.getChatModels()
+    models: await Token.getChatModels(),
+    server_domain: config?.getConfigValue('server.domain'),
   }));
 });
 
 // 注册登录
 router.post('/login', async (req, res) => {
-  const {account, code, password} = req.body;
+  const {account, code, password, invite_code} = req.body;
   if (!account || (!code && !password)) {
     res.json(ApiResponse.miss());
     return;
+  }
+  let invite_by = 0;
+  if (invite_code) {
+    invite_by = await User.getUserByInviteCode(invite_code).then(user => user?.get('id')) || 0;
   }
   let user = await User.getUserByAccount(account);
   if (code) {
@@ -66,7 +75,7 @@ router.post('/login', async (req, res) => {
   }
   const ip = utils.getClientIP(req);
   if (!user) {
-    user = await User.add(account, password, ip);
+    user = await User.add(account, password, ip, undefined, undefined, invite_by);
   }
   await doLogin(user!, ip, res);
 });
@@ -86,7 +95,7 @@ async function doLogin(user: User, ip: string, res: any) {
 
 // 社交登录注册
 router.post('/login/social', async (req, res) => {
-  const {type, credential} = req.body;
+  const {type, credential, invite_code} = req.body;
   if (!type || !credential) {
     res.json(ApiResponse.miss());
     return;
@@ -95,13 +104,16 @@ router.post('/login/social', async (req, res) => {
     res.json(ApiResponse.error(400, req.t('暂不支持该登录方式')));
     return;
   }
+  let invite_by = 0;
+  if (invite_code) {
+    invite_by = await User.getUserByInviteCode(invite_code).then(user => user?.get('id')) || 0;
+  }
   let googleClientId = config?.getConfigValue('social.google.client_id');
   if (!googleClientId) {
     logger.error('social login fail: social.google.client_id is not set');
     res.json(ApiResponse.server_error());
     return;
   }
-
   const loginTicket = await new OAuth2Client(googleClientId)
     .verifyIdToken({idToken: credential});
   const payload = loginTicket?.getPayload();
@@ -116,7 +128,7 @@ router.post('/login/social', async (req, res) => {
   let user = await User.getUserByAccount(email!);
 
   if (!user) {
-    user = await User.add(email!, randomUUID(), utils.getClientIP(req), name, picture);
+    user = await User.add(email!, randomUUID(), utils.getClientIP(req), name, picture, invite_by);
   }
   if (!userSocial) {
     await UserSocial.add(user!.id, UserSocialTypeEnum.GOOGLE, socialId);
@@ -252,21 +264,17 @@ router.post('/use_redemption_code', async (req, res) => {
   }
   await Action.add(user_id, ActionTypeEnum.USE_REDEMPTION_CODE, ip, '使用卡密');
 
-  await User.updateUserVIP({
+  const type = redemption_code.type === 'day' ? 2 : 1;
+  const typeText = redemption_code.type === 'day' ? (
+    UserLevelEnum[redemption_code.level!] + '{天}') : '{积分}';
+
+  await User.updateUserIntegralOrLevelTime({
     user_id: user_id,
-    value: Number(redemption_code.value),
-    level: redemption_code.level,
-    type: redemption_code.type,
-    operate: 'increment'
+    quantity: Number(redemption_code.value),
+    type: type,
+    describe: `{卡密充值} ${typeText}`,
+    level: type == 2 ? redemption_code.level! : undefined,
   });
-
-  const typeText = redemption_code.type === 'day' ? {
-    1: '(会员)',
-    2: '(超级会员)',
-  }[redemption_code.level!] || '(天数)' : '(积分)';
-
-  await Turnover.add(user_id, `{卡密充值} ${typeText}`,
-    `${redemption_code.value}${redemption_code.type === 'day' ? '{天}' : '{积分}'}`);
 
   res.json(ApiResponse.success({}, req.t('使用卡密成功')));
 });
@@ -312,13 +320,12 @@ router.post('/signin', async (req, res) => {
   const ip = utils.getClientIP(req);
   await Action.add(user_id, ActionTypeEnum.SIGNIN, ip, '签到');
   await Signin.add(user_id, ip);
-  await User.updateUserVIP({
-    operate: 'increment',
+  await User.updateUserIntegralOrLevelTime({
     user_id: user_id,
-    value: Number(signin_reward),
-    type: RedemptionCodeTypeEnum.INTEGRAL,
+    quantity: Number(signin_reward),
+    type: 1,
+    describe: '{签到奖励}'
   });
-  await Turnover.add(user_id, '{签到奖励}', `${signin_reward}{积分}`);
   res.json(ApiResponse.success({}, `${req.t('签到成功')} +${signin_reward}${req.t('积分')}`));
 });
 
@@ -482,9 +489,6 @@ const batchModify = async ({order_id, trade_status, trade_no, notify_info, user_
     trade_no,
     notify_info
   });
-  // 加个账单
-  await Turnover.add(user_id, `{购买}-${product.title}`,
-    product.type === 'day' ? `${product.value}天` : `${product.value}{积分}`);
   return true;
 };
 
@@ -579,59 +583,260 @@ router.all('/pay/notify', async (req, res) => {
 
 router.post('/stripe/webhook',
   async (req, res) => {
-  const {payment_id} = req.query;
-  try {
-    const paymentInfo = await Payment.findByPk(payment_id as string, {raw: true});
-    if (!paymentInfo) {
-      logger.error(`stripe webhook error: paymentInfo not found, payment_id: ${payment_id}`);
-      res.json('fail');
-      return;
+    const {payment_id} = req.query;
+    try {
+      const paymentInfo = await Payment.findByPk(payment_id as string, {raw: true});
+      if (!paymentInfo) {
+        logger.error(`stripe webhook error: paymentInfo not found, payment_id: ${payment_id}`);
+        res.json('fail');
+        return;
+      }
+      const config = JSON.parse(paymentInfo.params);
+      const {data, type} = await stripe.constructEvent(config, req);
+      if (type !== 'checkout.session.completed') {
+        res.json('fail');
+        return;
+      }
+      const session = data.object as Stripe.Checkout.Session;
+      if (session.status !== 'complete') {
+        logger.error(`stripe webhook error: session status not complete, payment_id: ${payment_id}`);
+        res.json('fail');
+        return;
+      }
+      const {payment_intent, metadata} = session;
+      if (!metadata || !metadata.order_id) {
+        logger.error(`stripe webhook error: metadata or metadata.order_id not found, payment_id: ${payment_id}`);
+        res.json('fail');
+        return;
+      }
+      const orderInfo = await Order.findByPk(metadata.order_id, {raw: true});
+      if (!orderInfo || orderInfo.trade_status !== 'TRADE_AWAIT') {
+        logger.error(`stripe webhook error: orderInfo not found or orderInfo.trade_status not TRADE_AWAIT, payment_id: ${payment_id}`);
+        res.json('fail');
+        return;
+      }
+      if (!await stripe.checkChargeIsSuccess(config, payment_intent as string)) {
+        logger.error(`stripe webhook error: checkChargeIsSuccess fail, payment_id: ${payment_id}`);
+        res.json('fail');
+        return;
+      }
+      const modifyResult = await batchModify({
+        order_id: metadata.order_id,
+        trade_status: 'TRADE_SUCCESS',
+        trade_no: payment_intent,
+        notify_info: JSON.stringify(req.body),
+        user_id: orderInfo.user_id,
+        product_id: orderInfo.product_id
+      });
+      if (!modifyResult) {
+        res.json('fail');
+        return;
+      }
+    } catch (e) {
+      logger.error(`pay notify error: ${e}`);
     }
-    const config = JSON.parse(paymentInfo.params);
-    const {data, type} = await stripe.constructEvent(config, req);
-    if (type !== 'checkout.session.completed') {
-      res.json('fail');
-      return;
-    }
-    const session = data.object as Stripe.Checkout.Session;
-    if (session.status !== 'complete') {
-      logger.error(`stripe webhook error: session status not complete, payment_id: ${payment_id}`);
-      res.json('fail');
-      return;
-    }
-    const {payment_intent, metadata} = session;
-    if (!metadata || !metadata.order_id) {
-      logger.error(`stripe webhook error: metadata or metadata.order_id not found, payment_id: ${payment_id}`);
-      res.json('fail');
-      return;
-    }
-    const orderInfo = await Order.findByPk(metadata.order_id, {raw: true});
-    if (!orderInfo || orderInfo.trade_status !== 'TRADE_AWAIT') {
-      logger.error(`stripe webhook error: orderInfo not found or orderInfo.trade_status not TRADE_AWAIT, payment_id: ${payment_id}`);
-      res.json('fail');
-      return;
-    }
-    if (!await stripe.checkChargeIsSuccess(config, payment_intent as string)) {
-      logger.error(`stripe webhook error: checkChargeIsSuccess fail, payment_id: ${payment_id}`);
-      res.json('fail');
-      return;
-    }
-    const modifyResult = await batchModify({
-      order_id: metadata.order_id,
-      trade_status: 'TRADE_SUCCESS',
-      trade_no: payment_intent,
-      notify_info: JSON.stringify(req.body),
-      user_id: orderInfo.user_id,
-      product_id: orderInfo.product_id
-    });
-    if (!modifyResult) {
-      res.json('fail');
-      return;
-    }
-  } catch (e){
-    logger.error(`pay notify error: ${e}`);
+    res.json('success');
+  });
+
+router.post('/api-key', async (req, res) => {
+  const user_id = req.user_id;
+  if (!user_id) {
+    res.json(ApiResponse.miss());
+    return;
   }
-  res.json('success');
+  const {name} = req.body;
+  if (!name) {
+    res.json(ApiResponse.miss());
+    return;
+  }
+  const apiKey = await UserApiKey.create({
+    user_id,
+    name,
+    api_key: utils.generateApiKey()
+  });
+  res.json(ApiResponse.success(apiKey));
+});
+
+router.get('/api-keys', async (req, res) => {
+  const user_id = req.user_id;
+  if (!user_id) {
+    res.json(ApiResponse.miss());
+    return;
+  }
+  const apiKeyList = await UserApiKey.findAndCountAll({
+    where: {
+      user_id
+    },
+    raw: true
+  });
+  res.json(ApiResponse.success(apiKeyList));
+});
+
+router.delete('/api-key/:id', async (req, res) => {
+  const user_id = req.user_id;
+  if (!user_id) {
+    res.json(ApiResponse.miss());
+    return;
+  }
+  const {id} = req.params;
+  if (!id) {
+    res.json(ApiResponse.miss());
+    return;
+  }
+  const apiKey = await UserApiKey.findOne({
+    where: {
+      id,
+      user_id
+    }
+  });
+  if (!apiKey) {
+    res.json(ApiResponse.miss());
+    return;
+  }
+  const redisKey = `api_key:${apiKey}`;
+  await redisClient!.del(redisKey);
+  await apiKey.destroy();
+  res.json(ApiResponse.success());
+});
+
+router.get('/api-keys/usage', async (req, res) => {
+  const month = Number(req.query.month || dayjs().month()) - 1;
+
+  const usageList = await UserApiKeyUsage.findAll({
+    where: {
+      create_time: {
+        [Op.gte]: dayjs().month(month).startOf('month').toDate(),
+        [Op.lte]: dayjs().month(month).endOf('month').toDate()
+      },
+      user_id: req.user_id
+    },
+    raw: true
+  });
+  const result: {
+    date: string,
+    usage: number
+  }[] = []
+  for (let i = 0; i < dayjs().month(month).endOf('month').date(); i++) {
+    const date = dayjs().month(month).startOf('month').add(i, 'day').format('YYYY-MM-DD');
+    const usage = usageList
+      .filter(item => dayjs(item.create_time).format('YYYY-MM-DD') === date)
+      .reduce((prev, next) => prev + next.prompt_integral + next.completion_integral, 0);
+    result.push({
+      date,
+      usage
+    });
+  }
+
+  res.json(ApiResponse.success(result));
+});
+
+router.get('/api-keys/usage/daily', async (req, res) => {
+  const date = (req.query.date || dayjs().format('YYYY-MM-DD')) as string;
+  const usageList = await UserApiKeyUsage.findAll({
+    where: {
+      create_time: {
+        [Op.gte]: dayjs(date).startOf('day').toDate(),
+        [Op.lte]: dayjs(date).endOf('day').toDate()
+      },
+      user_id: req.user_id
+    },
+    raw: true
+  });
+  // 按照小时分组，再按照 model 分组，最后按照5分钟为单位分组
+  const result: {
+    item: string,
+    request_count: number,
+    // 每小时
+    hourly: {
+      hour: number,
+      request_count: number,
+      // model, 5分钟
+      models: {
+        time: string,
+        model: string,
+        request_count: number,
+        prompt_tokens: number,
+        completion_tokens: number,
+      }[]
+    }[]
+  }[] = [];
+
+  // 按照小时分组
+  const hourlyUsageList = usageList.reduce((prev, next) => {
+    const hour = dayjs(next.create_time).hour();
+    if (!prev[hour]) {
+      prev[hour] = [];
+    }
+    prev[hour].push(next);
+    return prev;
+  }, {} as {
+    [key: number]: UserApiKeyUsage[]
+  });
+
+  const hourlyResults = [];
+  for (let hour = 0; hour < 24; hour++) {
+    const hourlyUsage = hourlyUsageList[hour];
+    if (!hourlyUsage) {
+      continue;
+    }
+    // 按照 model 分组
+    const modelUsageList = hourlyUsage.reduce((prev, next) => {
+      if (!prev[next.model]) {
+        prev[next.model] = [];
+      }
+      prev[next.model].push(next);
+      return prev;
+    }, {} as {
+      [key: string]: UserApiKeyUsage[]
+    });
+    const hourlyResult: {
+      hour: number,
+      request_count: number,
+      // model, 5分钟
+      models: {
+        time: string,
+        model: string,
+        request_count: number,
+        prompt_tokens: number,
+        completion_tokens: number,
+      }[]
+    } = {
+      hour,
+      request_count: hourlyUsage.length,
+      models: []
+    };
+    for (const model in modelUsageList) {
+      const modelUsage = modelUsageList[model];
+      // 按照5分钟分组
+      const timeUsageList = modelUsage.reduce((prev, next) => {
+        const time = dayjs(next.create_time).format('HH:mm');
+        if (!prev[time]) {
+          prev[time] = [];
+        }
+        prev[time].push(next);
+        return prev;
+      }, {} as {
+        [key: string]: UserApiKeyUsage[]
+      });
+      for (const time in timeUsageList) {
+        const timeUsage = timeUsageList[time];
+        hourlyResult.models.push({
+          time,
+          model,
+          request_count: timeUsage.length,
+          prompt_tokens: timeUsage.reduce((prev, next) => prev + next.prompt_tokens, 0),
+          completion_tokens: timeUsage.reduce((prev, next) => prev + next.completion_tokens, 0)
+        });
+      }
+    }
+    hourlyResults.push(hourlyResult);
+  }
+  result.push({
+    item: 'Language model usage',
+    request_count: usageList.length,
+    hourly: hourlyResults
+  })
+  res.json(ApiResponse.success(result));
 });
 
 export default router;

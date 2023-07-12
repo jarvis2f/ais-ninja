@@ -1,15 +1,42 @@
-import {ProForm, ProFormDigit, ProFormGroup, ProFormList, ProFormText, QueryFilter} from '@ant-design/pro-components'
+import {ProFormDigit, ProFormText, ProFormTextArea, QueryFilter} from '@ant-design/pro-components'
 import {Form, message, Space} from 'antd'
 import {useEffect, useState} from 'react'
 import styles from './index.module.less'
 import {getAdminConfig, importPluginFunction, putAdminConfig} from '@/request/adminApi'
 import {ConfigInfo} from '@/types/admin'
 
+const modelRatioHelp = JSON.stringify(JSON.parse(`
+{
+    "模型名称": {
+        "input": "提示倍率",
+        "output": "完成倍率"
+    },
+    "模型名称2": "单倍率，如：嵌入模型(text-embedding-ada-002)",
+    "dall-e": {
+        "256*256": "openAI图形生成倍率 按照size设置"
+    },
+    "gpt-3.5-turbo": {
+        "input": 1,
+        "output": 1
+    }
+}
+`), null, 2)
+const userLevelRatioHelp = JSON.stringify(JSON.parse(`
+{
+  "NORMAL": 1,
+  "VIP": 1,
+  "PRO": 1,
+  "BUSINESS": 1
+}
+`), null, 2)
+
 function ConfigPage() {
 	const [configs, setConfigs] = useState<Array<ConfigInfo>>([])
 	const [rewardForm] = Form.useForm<{
 		register_reward: number | string
 		signin_reward: number | string
+		invitee_reward: number | string
+		inviter_reward: number | string
 	}>()
 
 	const [historyMessageForm] = Form.useForm<{
@@ -21,8 +48,8 @@ function ConfigPage() {
 	}>()
 
 	const [aiRatioForm] = Form.useForm<{
-		ai3_ratio: number | string
-		ai4_ratio: number | string
+		model_ratio: string
+		user_level_ratio: string
 	}>()
 
 	const [drawUsePriceForm] = Form.useForm<{
@@ -33,27 +60,30 @@ function ConfigPage() {
 	}>()
 
 	function getConfigValue(key: string, data: Array<ConfigInfo>) {
-		const value = data.filter((c) => c.name === key)[0]
-		return value
+		return data.filter((c) => c.name === key)[0]
 	}
 
 	function onRewardFormSet(data: Array<ConfigInfo>) {
 		const registerRewardInfo = getConfigValue('register_reward', data)
 		const signinRewardInfo = getConfigValue('signin_reward', data)
+		const inviteeRewardInfo = getConfigValue('invitee_reward', data)
+		const inviterRewardInfo = getConfigValue('inviter_reward', data)
 		const historyMessageCountInfo = getConfigValue('history_message_count', data)
-		const ai3Ratio = getConfigValue('ai3_ratio', data)
-		const ai4Ratio = getConfigValue('ai4_ratio', data)
 		const drawUsePrice = getConfigValue('draw_use_price', data)
+		const modelRatio = getConfigValue('model_ratio', data)
+		const userLevelRatio = getConfigValue('user_level_ratio', data)
 		rewardForm.setFieldsValue({
-			register_reward: registerRewardInfo.value,
-			signin_reward: signinRewardInfo.value
+			register_reward: registerRewardInfo?.value || 0,
+			signin_reward: signinRewardInfo?.value || 0,
+			invitee_reward: inviteeRewardInfo?.value || 0,
+			inviter_reward: inviterRewardInfo?.value || 0
 		})
 		historyMessageForm.setFieldsValue({
-			history_message_count: Number(historyMessageCountInfo.value)
+			history_message_count: Number(historyMessageCountInfo?.value || 10)
 		})
 		aiRatioForm.setFieldsValue({
-			ai3_ratio: Number(ai3Ratio.value),
-			ai4_ratio: Number(ai4Ratio.value)
+			model_ratio: modelRatio.value,
+			user_level_ratio: userLevelRatio.value
 		})
 		if (drawUsePrice && drawUsePrice.value) {
 			drawUsePriceForm.setFieldsValue({
@@ -145,6 +175,7 @@ function ConfigPage() {
 						<ProFormDigit
 							name="register_reward"
 							label="注册奖励"
+							labelCol={{span: 8}}
 							tooltip="新用户注册赠送积分数量"
 							min={0}
 							max={100000}
@@ -152,7 +183,24 @@ function ConfigPage() {
 						<ProFormDigit
 							name="signin_reward"
 							label="签到奖励"
+							labelCol={{span: 8}}
 							tooltip="每日签到赠送积分数量"
+							min={0}
+							max={100000}
+						/>
+						<ProFormDigit
+							name="invitee_reward"
+							label="邀请者奖励"
+							labelCol={{span: 8}}
+							tooltip="邀请新用户注册赠送积分数量"
+							min={0}
+							max={100000}
+						/>
+						<ProFormDigit
+							name="inviter_reward"
+							label="受邀者奖励"
+							labelCol={{span: 8}}
+							tooltip="被邀请新用户注册赠送积分数量"
 							min={0}
 							max={100000}
 						/>
@@ -184,9 +232,19 @@ function ConfigPage() {
 					</QueryFilter>
 				</div>
 				<div className={styles.config_form}>
-					<h3>对话积分扣除比例</h3>
+					<h3>倍率设置</h3>
 					<p>
-						设置1积分等于多少Token，比如：1积分=50Token，那么单次会话消耗100Token就需要扣除2积分。
+						单次对话 / API 调用的积分消耗 = (分组倍率 * 模型提示倍率 * 提示token数量) + (分组倍率 * 模型完成倍率
+						* 完成token数量)
+					</p>
+					<p>
+						单次图片 / API 调用的积分消耗 = 模型倍率 * 分组倍率 * (图片数量)
+					</p>
+					<p>
+						用户四个等级，分别为：NORMAL(普通用户), VIP(会员用户), PRO(专业用户), BUSINESS(企业用户)
+					</p>
+					<p>
+						格式为JSON，保存前建议到 <a href="https://www.json.cn/" target="_blank">JSON在线解析</a> 检查格式是否正确
 					</p>
 					<QueryFilter
 						form={aiRatioForm}
@@ -198,27 +256,36 @@ function ConfigPage() {
 						collapsed={false}
 						defaultCollapsed={false}
 						requiredMark={false}
-						defaultColsNumber={79}
+						defaultColsNumber={85}
 						searchText="保存"
 						resetText="恢复"
 					>
-						<ProFormDigit
-							name="ai3_ratio"
-							label="GPT3"
-							tooltip="每1积分等于多少Token"
-							min={0}
-							max={100000}
+						<ProFormTextArea
+							name="model_ratio"
+							label="模型倍率"
+							tooltip={(<pre style={{wordBreak: "break-word"}}>
+									{modelRatioHelp}
+								</pre>
+							)}
+							// initialValue={}
+							fieldProps={{
+								rows: 8
+							}}
 						/>
-						<ProFormDigit
-							name="ai4_ratio"
-							label="GPT4"
-							tooltip="每1积分等于多少Token"
-							min={0}
-							max={100000}
+						<ProFormTextArea
+							name="user_level_ratio"
+							label="分组倍率"
+							tooltip={(<pre style={{wordBreak: "break-word"}}>
+									{userLevelRatioHelp}
+								</pre>
+							)}
+							fieldProps={{
+								rows: 8
+							}}
 						/>
 					</QueryFilter>
 				</div>
-				<div className={styles.config_form}>
+				{/*<div className={styles.config_form}>
 					<h3>绘画积分扣除设置</h3>
 					<p>分为三个规格 256x256 512x512 1024x1024 请分别设置, 如为设置则不扣除积分。</p>
 					<ProForm
@@ -272,7 +339,7 @@ function ConfigPage() {
 							</ProFormGroup>
 						</ProFormList>
 					</ProForm>
-				</div>
+				</div>*/}
 				<div className={styles.config_form}>
 					<h3>导入插件</h3>
 					<QueryFilter

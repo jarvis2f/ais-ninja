@@ -37,12 +37,6 @@ function AdminPage() {
         contentWidth="Fluid"
         fixedHeader
         fixSiderbar
-        contentStyle={
-          {
-            //   height: 'calc(100vh - 10px)'
-            //   background: 'red'
-          }
-        }
         siderMenuType="group"
         menu={{
           locale: false,

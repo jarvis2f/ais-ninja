@@ -17,7 +17,7 @@ import { userStore } from '@/store'
 import { Avatar, Button, Dropdown, MenuProps } from 'antd'
 import { getEmailPre } from '@/utils'
 import MenuList from '../MenuList'
-import { useNavigate } from 'react-router-dom'
+import {Link, useNavigate} from 'react-router-dom'
 import { fetchUserInfo } from '@/store/user/async'
 import { useTranslation } from 'react-i18next'
 
@@ -93,10 +93,10 @@ function HeaderRender(props: HeaderViewProps, defaultDom: React.ReactNode) {
           onClick={() => props.onCollapse?.(!props.collapsed)}
         />
       )}
-      <div className={styles.header__logo}>
-        {renderLogo}
-        {!props.isMobile && <h1>{props.title}</h1>}
-      </div>
+        <Link to={'/'} className={styles.header__logo}>
+			{renderLogo}
+        	{!props.isMobile && <h1>{props.title}</h1>}
+		</Link>
       {!props.isMobile && <MenuList />}
       <div className={styles.header__actives}>
         <div>
@@ -123,7 +123,7 @@ function HeaderRender(props: HeaderViewProps, defaultDom: React.ReactNode) {
                     icon: <UserOutlined />,
                     label: t('用户中心'),
                     onClick: () => {
-                      navigate('/user')
+                      navigate('/user/center')
                     }
                   },
                   {

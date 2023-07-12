@@ -1,5 +1,5 @@
 import {useRoutes} from 'react-router-dom'
-import {adminRouter, webRouter} from '../routers'
+import {adminRouter, webRouter} from '@/routers'
 import {useMemo} from 'react'
 import {userStore} from '@/store'
 

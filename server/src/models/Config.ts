@@ -5,11 +5,20 @@ enum ConfigNameEnum {
   SHOP_INTRODUCE = 'shop_introduce',
   USER_INTRODUCE = 'user_introduce',
   REGISTER_REWARD = 'register_reward',
+  // 受邀人奖励
+  INVITEE_REWARD = 'invitee_reward',
+  // 邀请者奖励
+  INVITER_REWARD = 'inviter_reward',
   DRAW_USE_PRICE = 'draw_use_price',
   HISTORY_MESSAGE_COUNT = 'history_message_count',
   SIGNIN_REWARD = 'signin_reward',
+
+  // deprecated
   AI3_RATIO = 'ai3_ratio',
   AI4_RATIO = 'ai4_ratio',
+
+  MODEL_RATIO = 'model_ratio',
+  USER_LEVEL_RATIO = 'user_level_ratio',
 }
 
 interface ConfigAttributes {

@@ -1,7 +1,8 @@
-import {createPlugin, installModule, installModuleIfNeeded, PLUGINS_MODULE_DIR} from "../../../src/chatgpt/plugins";
+import {createPlugin, installModule, installModuleIfNeeded, PLUGINS_MODULE_DIR} from "../../../src/ai/openai/plugins";
 import * as path from 'path';
 import {Configuration, OpenAIApi} from "openai";
-import {getRandomClient} from "../../../src/chatgpt";
+import {supplierClientAgent} from "../../../src/ai";
+import OpenAIApiProxy from "../../../src/ai/openai/OpenAIApiProxy";
 require('dotenv').config({
   path: path.resolve(__dirname, '../../../.env')
 });
@@ -202,7 +203,7 @@ jest.mock('../../../src/chatgpt', () => ({
 }));
 
 test('use ais.createCompletion function', async () => {
-  expect(getRandomClient("text-davinci-002")).toEqual([null, expect.any(OpenAIApi)]);
+  expect(supplierClientAgent.getRandomClient("text-davinci-002", {})).toEqual([null, expect.any(OpenAIApiProxy)]);
 
   const plugin = createPlugin(
     `
