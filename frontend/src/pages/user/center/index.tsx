@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react'
 import {Button, Form, message, Space} from 'antd'
-import {getCode, getSigninList, postSignin} from '@/request/api'
+import {getCode, getInvited, getSigninList, postSignin} from '@/request/api'
 import {userAsync} from '@/store/async'
 import {configStore, userStore} from '@/store'
 import styles from './index.module.less'
@@ -23,6 +23,7 @@ function UserCenter() {
 	const [userAccountForm] = Form.useForm()
 	const [signinLoading, setSigninLoading] = useState(false)
 	const [signinList, setSigninList] = useState<Array<SigninInfo>>([])
+	const [invitedCount, setInvitedCount] = useState(0)
 
 	const [userAccountModal, setUserAccountModal] = useState({
 		open: false,
@@ -68,6 +69,13 @@ function UserCenter() {
 
 	useEffect(() => {
 		onFetchSigninList()
+	}, [])
+
+	useEffect(() => {
+		getInvited().then((res) => {
+			if (res.code) return
+			setInvitedCount(res.data?.invited_count);
+		});
 	}, [])
 
 	return (

@@ -1,6 +1,6 @@
 import {
 	APIKeyInfo, APIKeyUsageDailyInfo, APIKeyUsageInfo,
-	FunctionInfo,
+	FunctionInfo, InvitedInfo,
 	PluginInfo,
 	ProductInfo,
 	RequesPrepay,
@@ -188,4 +188,8 @@ export function getAPIKeyUsage(params: { month: number }) {
 
 export function getAPIKeyUsageDaily(params: { date: string }) {
 	return request.get<APIKeyUsageDailyInfo[]>(`/api/u/api-keys/usage/daily`, params)
+}
+
+export function getInvited() {
+	return request.get<InvitedInfo>('/api/u/invited')
 }

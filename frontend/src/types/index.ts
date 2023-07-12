@@ -257,3 +257,7 @@ export interface APIKeyUsageDailyInfo {
 		}[]
 	}[]
 }
+
+export interface InvitedInfo {
+	invited_count: number
+}

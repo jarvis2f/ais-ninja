@@ -839,4 +839,15 @@ router.get('/api-keys/usage/daily', async (req, res) => {
   res.json(ApiResponse.success(result));
 });
 
+router.get('/invited', async (req, res) => {
+  const user_id = req.user_id!;
+  // 获取已邀请人数
+  const invitedCount = await User.count({
+    where: {
+      invite_by: user_id
+    }
+  });
+  res.json(ApiResponse.success({invited_count: invitedCount}));
+});
+
 export default router;
