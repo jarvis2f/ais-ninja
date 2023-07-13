@@ -45,7 +45,7 @@ docker run -d \
     -e DATABASE_PASSWORD=123456     \
     -e DATABASE_SYNC='true'     \
     -e REDIS_URL=redis://${url}:6379/0     \
-    jarvis2f/ais-ninja:v1.0.2
+    jarvis2f/ais-ninja:v1.0.4
 ```
 
 ### docker-compose
