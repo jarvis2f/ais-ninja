@@ -41,7 +41,7 @@ async function auth(req: Request, res: Response, next: NextFunction): Promise<vo
     return;
   }
 
-  if (path.indexOf('/api/admin') !== -1 && tokenInfo?.role !== 'administrator') {
+  if (path.indexOf('/api/a') !== -1 && tokenInfo?.role !== 'administrator') {
     res.status(403).json(ApiResponse.error(403, 'Forbidden'));
     return;
   }

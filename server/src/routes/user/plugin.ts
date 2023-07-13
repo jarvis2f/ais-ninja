@@ -223,6 +223,10 @@ router.put('/plugin/:id', async (req, res) => {
     res.json(ApiResponse.error(500, req.t('插件不存在')));
     return;
   }
+  if (plugin.get('creator_id') !== user_id) {
+    res.json(ApiResponse.error(500, req.t('无权限')));
+    return;
+  }
   const {name, description, avatar} = req.body;
   if (!name || !description) {
     res.json(ApiResponse.miss());
@@ -254,6 +258,10 @@ router.delete('/plugin/:id', async (req, res) => {
     res.json(ApiResponse.error(500, req.t('插件不存在')));
     return;
   }
+  if (plugin.get('creator_id') !== user_id) {
+    res.json(ApiResponse.error(500, req.t('无权限')));
+    return;
+  }
   await plugin.destroy();
   res.json(ApiResponse.success());
 })
@@ -268,6 +276,10 @@ router.post('/plugin/:id/function', async (req, res) => {
   const plugin = await Plugin.findByPk(id);
   if (!plugin) {
     res.json(ApiResponse.error(500, req.t('插件不存在')));
+    return;
+  }
+  if (plugin.get('creator_id') !== user_id) {
+    res.json(ApiResponse.error(500, req.t('无权限')));
     return;
   }
   const {name, description, parameters, script} = req.body;
@@ -295,6 +307,10 @@ router.put('/plugin/:id/function/:function_id', async (req, res) => {
   const plugin = await Plugin.findByPk(id);
   if (!plugin) {
     res.json(ApiResponse.error(500, req.t('插件不存在')));
+    return;
+  }
+  if (plugin.get('creator_id') !== user_id) {
+    res.json(ApiResponse.error(500, req.t('无权限')));
     return;
   }
   const func = await Functions.findByPk(function_id);
@@ -326,6 +342,10 @@ router.delete('/plugin/:id/function/:function_id', async (req, res) => {
   const plugin = await Plugin.findByPk(id);
   if (!plugin) {
     res.json(ApiResponse.error(500, req.t('插件不存在')));
+    return;
+  }
+  if (plugin.get('creator_id') !== user_id) {
+    res.json(ApiResponse.error(500, req.t('无权限')));
     return;
   }
   const func = await Functions.findByPk(function_id);
