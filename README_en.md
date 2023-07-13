@@ -9,6 +9,7 @@ ais-ninja is a chatgpt based web application. It is based on the [ChatGpt-Web](h
 * Refactored the server code.
 * Support multiple languages.
 * Support plug-in system like OpenAI GPT-4.
+* Support claude model。
 
 ## Plugin list
 
@@ -198,3 +199,12 @@ console of the browser.
     "status_code": "AP010003"
 }
 ```
+
+## Changelog
+
+### v1.0.4
+
+database changes：[v1.0.4.sql](deploy%2Fsql%2Fv1.0.4.sql)
+
+* Add claude model support
+* Add User Invitation Code

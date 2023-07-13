@@ -11,6 +11,7 @@ ais-ninja 是一个基于 chatgpt 的 Web 应用程序。它基于 [ChatGpt-Web]
 * 重构了后端代码。
 * 多语言支持。
 * 支持插件系统。
+* 支持 claude 模型。
 
 ## 插件列表
 
@@ -192,3 +193,11 @@ docker run -d \
     "status_code": "AP010003"
 }
 ```
+## 更新记录
+
+### v1.0.4
+
+数据库变更：[v1.0.4.sql](deploy%2Fsql%2Fv1.0.4.sql)
+
+* 增加 claude 模型支持
+* 增加用户邀请码
