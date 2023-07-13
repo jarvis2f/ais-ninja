@@ -94,7 +94,7 @@
     "@jridgewell/gen-mapping" "^0.3.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@anthropic-ai/sdk@^0.5.0":
+"@anthropic-ai/sdk@0.5.0":
   version "0.5.0"
   resolved "https://registry.npmmirror.com/@anthropic-ai/sdk/-/sdk-0.5.0.tgz#1d117cbada76cf01c92ac5ac079bfbd00e4e140d"
   integrity sha512-7T/oK6CtheVkdRZmIO9FSdHtKyUU92F6JHRz7RY99gzcm6DM5rYTNORvwVHWTe0nr9lsZuso8GpoXZsUG7Zypg==
@@ -1028,7 +1028,7 @@
 
 "@types/qs@*", "@types/qs@^6.9.7":
   version "6.9.7"
-  resolved "https://registry.npmmirror.com/@types/qs/-/qs-6.9.7.tgz"
+  resolved "https://registry.npmmirror.com/@types/qs/-/qs-6.9.7.tgz#63bb7d067db107cc1e457c303bc25d511febf6cb"
   integrity sha512-FGa1F62FT09qcrueBA6qYTrJPVDzah9a+493+o2PCXsesWHIn27G98TsSMs3WPNbZIEj4+VJf6saSFpvD+3Zsw==
 
 "@types/range-parser@*":
@@ -1751,7 +1751,7 @@ denque@^2.1.0:
 
 depd@2.0.0, depd@^2.0.0:
   version "2.0.0"
-  resolved "https://registry.npmmirror.com/depd/-/depd-2.0.0.tgz"
+  resolved "https://registry.npmmirror.com/depd/-/depd-2.0.0.tgz#b696163cc757560d09cf22cc8fad1571b79e76df"
   integrity sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==
 
 destroy@1.2.0, destroy@^1.0.4:
@@ -2408,7 +2408,7 @@ human-signals@^2.1.0:
 
 humanize-ms@^1.2.0, humanize-ms@^1.2.1:
   version "1.2.1"
-  resolved "https://registry.npmmirror.com/humanize-ms/-/humanize-ms-1.2.1.tgz"
+  resolved "https://registry.npmmirror.com/humanize-ms/-/humanize-ms-1.2.1.tgz#c46e3159a293f6b896da29316d8b6fe8bb79bbed"
   integrity sha512-Fl70vYtsAFb/C06PTS9dZBo7ihau+Tu/DNCk/OyHhea07S+aeMWpFFkUaXRa8fI+ScZbEI8dfSxwY7gxZ9SAVQ==
   dependencies:
     ms "^2.0.0"
@@ -3751,7 +3751,7 @@ qs@6.11.0:
 
 qs@^6.10.3, qs@^6.11.0, qs@^6.4.0:
   version "6.11.2"
-  resolved "https://registry.npmmirror.com/qs/-/qs-6.11.2.tgz"
+  resolved "https://registry.npmmirror.com/qs/-/qs-6.11.2.tgz#64bea51f12c1f5da1bc01496f48ffcff7c69d7d9"
   integrity sha512-tDNIz22aBzCDxLtVH++VnTfzxlfeK5CbqohpSqpJgj1Wg/cQbStNAz3NuqCs5vV+pjBsK4x4pN9HlVh7rcYRiA==
   dependencies:
     side-channel "^1.0.4"

@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@alicloud/dysmsapi20170525": "2.0.24",
-    "@anthropic-ai/sdk": "^0.5.0",
+    "@anthropic-ai/sdk": "0.5.0",
     "@pinecone-database/pinecone": "^0.1.6",
     "@types/pino": "^7.0.5",
     "alipay-sdk": "^3.4.0",
