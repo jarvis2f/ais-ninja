@@ -44,7 +44,7 @@ docker run -d \
     -e DATABASE_PASSWORD=123456     \
     -e DATABASE_SYNC='true'     \
     -e REDIS_URL=redis://${url}:6379/0  \
-    jarvis2f/ais-ninja:1.0.2
+    jarvis2f/ais-ninja:v1.0.6
 ```
 
 ### docker-compose
@@ -198,3 +198,22 @@ console of the browser.
     "status_code": "AP010003"
 }
 ```
+
+## Changelog
+
+### v1.0.6
+
+database changes：[v1.0.6.sql](deploy%2Fsql%2Fv1.0.6.sql)
+
+* Support OpenAI、anthropic、stability API Proxy
+* Precise control of point deduction for chatting and drawing
+* Add stability drawing model support
+* Change of Membership Level
+* Website title, logo setting, UI style change, more bells and whistles 🤣
+
+### v1.0.4
+
+database changes：[v1.0.4.sql](deploy%2Fsql%2Fv1.0.4.sql)
+
+* Add claude model support
+* Add User Invitation Code

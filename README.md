@@ -45,7 +45,7 @@ docker run -d \
     -e DATABASE_PASSWORD=123456     \
     -e DATABASE_SYNC='true'     \
     -e REDIS_URL=redis://${url}:6379/0     \
-    jarvis2f/ais-ninja:v1.0.2
+    jarvis2f/ais-ninja:v1.0.6
 ```
 
 ### docker-compose
@@ -192,3 +192,22 @@ docker run -d \
     "status_code": "AP010003"
 }
 ```
+
+## 更新记录
+
+### v1.0.6
+
+数据库变更：[v1.0.6.sql](deploy%2Fsql%2Fv1.0.6.sql)
+
+* 支持 OpenAI、anthropic、stability API代理
+* 聊天、绘图精准控制积分扣除
+* 增加 stability 绘图模型支持
+* 会员等级变更
+* 网站标题、logo设置，UI样式变更，更加花里胡哨 🤣
+
+### v1.0.4
+
+数据库变更：[v1.0.4.sql](deploy%2Fsql%2Fv1.0.4.sql)
+
+* 增加 claude 模型支持
+* 增加用户邀请码
