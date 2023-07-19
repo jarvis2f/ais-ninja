@@ -38,14 +38,14 @@ export class UserApiKeyUsage extends Model<UserApiKeyUsageAttributes, UserApiKey
 
   @Column({
     type: DataTypes.BIGINT({unsigned: true}),
-    allowNull: false,
+    allowNull: true,
     defaultValue: 0,
   })
   public user_id!: number;
 
   @Column({
     type: DataTypes.BIGINT({unsigned: true}),
-    allowNull: false,
+    allowNull: true,
     defaultValue: 0,
   })
   public api_key_id!: number;

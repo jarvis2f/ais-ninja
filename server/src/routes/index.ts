@@ -2,7 +2,9 @@ import {Express} from 'express';
 import u_user_router from './user/user';
 import u_code_router from './user/code';
 import u_ai_router from './user/ai';
-import relay_router from './relay/openai';
+import openai_relay_router from './relay/openai';
+import anthropic_relay_router from './relay/anthropic';
+import stability_relay_router from './relay/stability';
 import u_plugin_router from './user/plugin';
 import a_config_router from './admin/config';
 import a_action_router from './admin/action';
@@ -45,7 +47,7 @@ export default (app: Express) => {
   app.use('/api/a/usage', a_usage_router);
 
   // Relay interface
-  app.use('/', relay_router);
+  app.use('/', openai_relay_router, anthropic_relay_router, stability_relay_router);
 
   app.all('/*', (req, res) => {
     res.status(404).json(ApiResponse.error(404, 'The current access API address does not exist'));

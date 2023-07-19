@@ -7,8 +7,10 @@ import {supplierClientAgent} from "../../ai";
 import {MixModel} from "../../ai/types";
 import {Op} from "sequelize";
 import {addStabilityUsageCheckTask} from "../../ai/stability/key_usage";
+import {getLogger} from "../../utils/logger";
 
 const router = Router();
+const logger = getLogger('routes:admin:token');
 
 router.get('/:supplier/models', async (req, res) => {
   const {user_id} = req;
@@ -22,6 +24,7 @@ router.get('/:supplier/models', async (req, res) => {
     const [_, apiClient] = supplierClientAgent.getRandomClient(supplier as string, user_id);
     mixModels = await apiClient.listModels(true);
   } catch (e) {
+    logger.error(`list models error: ${e}`)
     switch (supplier) {
       case 'openai':
         mixModels.push({

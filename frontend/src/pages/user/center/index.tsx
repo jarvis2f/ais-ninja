@@ -146,7 +146,7 @@ function UserCenter() {
 								{t('复制邀请链接')}
 							</Button>
 							<p className={styles.user_center_invite_count}>
-								{t('已邀请好友数量')}：10
+								{t('已邀请好友数量')}：{invitedCount}
 							</p>
 						</div>
 					</div>

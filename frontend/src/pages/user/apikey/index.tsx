@@ -6,11 +6,13 @@ import {APIKeyInfo} from "@/types";
 import React, {useRef} from "react";
 import {Button, Form, message} from "antd";
 import {CopyFilled, DeleteOutlined, PlusOutlined} from "@ant-design/icons";
+import {configStore} from "@/store";
 
 function UserApikey() {
 	const {t} = useTranslation()
 	const actionRef = useRef<ActionType>();
 	const [apiKeyForm] = Form.useForm<{ name: string }>();
+	const {server_domain} = configStore();
 	const columns: ProColumns<APIKeyInfo>[] = [
 		{
 			title: t('名称'),
@@ -35,7 +37,7 @@ function UserApikey() {
 						<span>{key}</span>
 						<a key={key}
 						   onClick={() => {
-							   navigator.clipboard.writeText("ts-" + record.api_key);
+							   navigator.clipboard.writeText("tk-" + record.api_key);
 							   message.success(t('复制成功'));
 						   }}
 						>
@@ -83,9 +85,9 @@ function UserApikey() {
 				<p>
 					{t('如果您的 API 密钥已泄露或您想要生成新的 API 密钥，您可以在下面创建一个新的 API 密钥。密钥使用方式与OpenAI API 官方一致，只需将您的 API 密钥放在 HTTP 请求的 Authorization 标头中即可，再将请求地址改为')}
 					<span className={styles.apikey_help_host}>
-						https://ais.ninja
+						{server_domain}
 						<a key="key_host" onClick={() => {
-							navigator.clipboard.writeText("https://ais.ninja");
+							navigator.clipboard.writeText(server_domain ? server_domain : "");
 							message.success(t('复制成功'));
 						}}
 						>

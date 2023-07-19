@@ -20,8 +20,8 @@ import {MixModel} from "../types";
 class OpenAIApiProxy extends ApiProxy<OpenAIApi> {
 
   async listModels(mix?: boolean): Promise<MixModel[]>;
-  async listModels(options?: AxiosRequestConfig): Promise<AxiosResponse<ListModelsResponse>>;
-  async listModels(optionsOrMix?: AxiosRequestConfig | boolean, mix?: boolean): Promise<AxiosResponse<ListModelsResponse> | MixModel[]> {
+  async listModels(options?: AxiosRequestConfig): Promise<ListModelsResponse>;
+  async listModels(optionsOrMix?: AxiosRequestConfig | boolean, mix?: boolean): Promise<ListModelsResponse | MixModel[]> {
     if (typeof optionsOrMix === 'boolean') {
       mix = optionsOrMix;
       optionsOrMix = undefined;
@@ -43,7 +43,7 @@ class OpenAIApiProxy extends ApiProxy<OpenAIApi> {
           type: 'image' as const,
         }];
       } else {
-        return response;
+        return response.data;
       }
     });
   }

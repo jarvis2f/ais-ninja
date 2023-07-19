@@ -64,8 +64,8 @@ function binding_relation() {
   Plugin.belongsTo(User, {foreignKey: 'creator_id', targetKey: 'id', as: 'creator'});
   User.hasMany(Plugin, {foreignKey: 'creator_id', sourceKey: 'id', as: 'plugins'});
   User.hasMany(UserApiKey, {foreignKey: 'user_id', sourceKey: 'id', as: 'api_keys'})
-  UserApiKeyUsage.belongsTo(UserApiKey, {foreignKey: 'api_key_id', targetKey: 'id', as: 'api_key', onDelete: 'SET 0'});
-  UserApiKeyUsage.belongsTo(User, {foreignKey: 'user_id', targetKey: 'id', as: 'user', onDelete: 'SET 0'});
+  UserApiKeyUsage.belongsTo(UserApiKey, {foreignKey: 'api_key_id', targetKey: 'id', as: 'api_key', onDelete: 'SET NULL'});
+  UserApiKeyUsage.belongsTo(User, {foreignKey: 'user_id', targetKey: 'id', as: 'user', onDelete: 'SET NULL'});
   User.belongsToMany(Plugin, {through: UserInstalledPlugin, foreignKey: 'user_id', as: 'installed_plugins'});
   Plugin.belongsToMany(User, {through: UserInstalledPlugin, foreignKey: 'plugin_id', as: 'installed_users'});
 }
