@@ -12,8 +12,6 @@
   "dependencies": {
     "@alicloud/dysmsapi20170525": "2.0.24",
     "@anthropic-ai/sdk": "0.5.0",
-    "@improbable-eng/grpc-web": "^0.15.0",
-    "@improbable-eng/grpc-web-node-http-transport": "^0.15.0",
     "@pinecone-database/pinecone": "^0.1.6",
     "@types/pino": "^7.0.5",
     "alipay-sdk": "^3.4.0",
@@ -27,7 +25,6 @@
     "google-auth-library": "^8.8.0",
     "google-protobuf": "^3.21.2",
     "gpt-tokens": "^1.0.9",
-    "grpc": "^1.24.11",
     "handlebars": "^4.7.7",
     "i18next": "^23.0.2",
     "i18next-fs-backend": "^2.1.5",

@@ -1,7 +1,6 @@
 import {getLogger} from "../utils/logger";
 import {OpenAIApi} from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import {StabilityAPI} from "./stability/StabilityAPI";
 import {StabilityRestAPI} from "./stability/StabilityRestAPI";
 
 const logger = getLogger("ai");
