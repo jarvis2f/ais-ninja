@@ -4,7 +4,7 @@ import {DataTypes, Optional} from "sequelize";
 interface UserApiKeyUsageAttributes {
   id: number;
   user_id: number;
-  api_key_id: number;
+  api_key_id?: number | null;
   model: string;
   request?: string;
   response?: string;
@@ -48,7 +48,7 @@ export class UserApiKeyUsage extends Model<UserApiKeyUsageAttributes, UserApiKey
     allowNull: true,
     defaultValue: 0,
   })
-  public api_key_id!: number;
+  public api_key_id?: number | null;
 
   @Column({
     type: DataTypes.STRING(255),

@@ -184,7 +184,7 @@ async function chat_completions(caller: Caller, data: {
 
   await UserApiKeyUsage.create({
     user_id: user_id!,
-    api_key_id: api_key_id!,
+    api_key_id: api_key_id,
     model: request.model as string,
     request: JSON.stringify(request),
     response: JSON.stringify(response),
@@ -247,7 +247,7 @@ async function completions(caller: Caller, data: {
 
   await UserApiKeyUsage.create({
     user_id: user_id!,
-    api_key_id: api_key_id!,
+    api_key_id: api_key_id,
     model: request.model as string,
     request: JSON.stringify(request),
     response: JSON.stringify(response),
@@ -279,7 +279,7 @@ async function image_generations(caller: Caller, model: string, data: {
 
   await UserApiKeyUsage.create({
     user_id: user_id!,
-    api_key_id: api_key_id!,
+    api_key_id: api_key_id,
     model: model,
     request: JSON.stringify(request),
     response: JSON.stringify(response),
@@ -312,7 +312,7 @@ async function embeddings(caller: Caller, data: {
 
   await UserApiKeyUsage.create({
     user_id: user_id!,
-    api_key_id: api_key_id!,
+    api_key_id: api_key_id,
     model: model,
     request: JSON.stringify(request),
     response: JSON.stringify(response),
@@ -393,7 +393,7 @@ async function anthropic_completions(caller: Caller, data: {
 
   await UserApiKeyUsage.create({
     user_id: user_id!,
-    api_key_id: api_key_id!,
+    api_key_id: api_key_id,
     model: request.model as string,
     request: JSON.stringify(request),
     response: JSON.stringify(response),
@@ -450,7 +450,7 @@ async function stability_text_to_image(caller: Caller, data: {
 
   await UserApiKeyUsage.create({
     user_id: user_id!,
-    api_key_id: api_key_id!,
+    api_key_id: api_key_id,
     model: engine_id,
     request: JSON.stringify(request),
     response: JSON.stringify(response),
