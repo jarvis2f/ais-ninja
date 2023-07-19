@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react';
+import {useState, useEffect, useMemo} from 'react';
 
 function useDocumentResize(target: HTMLElement = document.body) {
   const [rect, setRect] = useState({
     width: 0,
     height: 0
   });
+
+  const isMobile = useMemo(() => {
+	  	return rect.width < 768;
+  }, [rect])
 
   useEffect(() => {
     const handleResize = () => {
@@ -33,7 +37,7 @@ function useDocumentResize(target: HTMLElement = document.body) {
     };
   }, [target]);
 
-  return rect;
+  return {...rect, isMobile};
 }
 
 export default useDocumentResize;

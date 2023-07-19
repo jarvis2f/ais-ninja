@@ -7,7 +7,7 @@ import {Button, Input, message, Modal, Pagination, QRCode, Radio, Space, Table} 
 import GoodsList from '@/components/GoodsList'
 import {CloseCircleFilled, PayCircleOutlined, SyncOutlined} from '@ant-design/icons'
 import {shopAsync, userAsync} from '@/store/async'
-import {getUserTurnover, postPayPrecreate, postUseCarmi} from '@/request/api'
+import {getUserTurnover, postPayPrecreate, postUseRedemptionCode} from '@/request/api'
 import {ProductInfo, TurnoverInfo} from '@/types'
 import OpenAiLogo from '@/components/OpenAiLogo'
 import {Link} from 'react-router-dom'
@@ -133,15 +133,15 @@ function GoodsPay() {
 		setPayModal((p) => ({...p, status: 'loading', open: false}))
 	}
 
-	const [carmiLoading, setCarmiLoading] = useState(false)
+	const [redemptionCodeLoading, setRedemptionCodeLoading] = useState(false)
 
-	function useCarmi(carmi: string) {
-		if (!carmi) {
+	function useRedemptionCode(redemptionCode: string) {
+		if (!redemptionCode) {
 			message.warning(t('请输入卡密'))
 			return
 		}
-		setCarmiLoading(true)
-		postUseCarmi({carmi})
+		setRedemptionCodeLoading(true)
+		postUseRedemptionCode({key: redemptionCode})
 			.then((res) => {
 				if (res.code) return
 				userAsync.fetchUserInfo()
@@ -149,7 +149,7 @@ function GoodsPay() {
 				onTurnoverLog(1, turnover.pageSize)
 			})
 			.finally(() => {
-				setCarmiLoading(false)
+				setRedemptionCodeLoading(false)
 			})
 	}
 
@@ -180,13 +180,13 @@ function GoodsPay() {
 						<div className={styles.goodsPay_card}>
 							<h4>{t('卡密充值')}</h4>
 							<Input.Search
-								loading={carmiLoading}
+								loading={redemptionCodeLoading}
 								placeholder={t('请输入充值卡密')!}
 								allowClear
 								enterButton={t('充值')}
 								size="large"
 								bordered
-								onSearch={useCarmi}
+								onSearch={useRedemptionCode}
 							/>
 						</div>
 						{shop_introduce && (

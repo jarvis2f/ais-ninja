@@ -27,8 +27,8 @@ function UserApikey() {
 			editable: false,
 			render: (dom, record) => {
 				let key = record.api_key;
-				// 修改为只显示前5位和后5位，中间用*代替，前面拼接ts-
-				key = "ts-" + key.substr(0, 5) + '********' + key.substr(key.length - 5);
+				// 修改为只显示前5位和后5位，中间用*代替，前面拼接tk-
+				key = "tk-" + key.substr(0, 5) + '********' + key.substr(key.length - 5);
 
 				return (
 					<div>

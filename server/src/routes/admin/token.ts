@@ -4,8 +4,54 @@ import ApiResponse from "../../utils/response";
 import {Token} from "../../models/Token";
 import {addUsageCheckTask, getKeyUsage} from "../../ai/openai/key_usage";
 import {supplierClientAgent} from "../../ai";
+import {MixModel} from "../../ai/types";
+import {Op} from "sequelize";
+import {addStabilityUsageCheckTask} from "../../ai/stability/key_usage";
 
 const router = Router();
+
+router.get('/:supplier/models', async (req, res) => {
+  const {user_id} = req;
+  const {supplier} = req.params;
+  if (!user_id || !supplier) {
+    res.json(ApiResponse.miss());
+    return;
+  }
+  let mixModels: MixModel[] = [];
+  try {
+    const [_, apiClient] = supplierClientAgent.getRandomClient(supplier as string, user_id);
+    mixModels = await apiClient.listModels(true);
+  } catch (e) {
+    switch (supplier) {
+      case 'openai':
+        mixModels.push({
+          name: 'GPT-3.5-TURBO',
+          model: 'gpt-3.5-turbo',
+          supplier: 'openai',
+          type: 'text'
+        })
+        break;
+      case 'stability':
+        mixModels.push({
+          name: 'Stable Diffusion v2.1',
+          model: 'stable-diffusion-512-v2-1',
+          supplier: 'stability',
+          type: 'image'
+        });
+        break;
+      case 'anthropic':
+        mixModels.push({
+          name: 'CLAUDE-1',
+          model: 'claude-1',
+          supplier: 'anthropic',
+          type: 'text'
+        })
+        break;
+    }
+  }
+  res.json(ApiResponse.success(mixModels));
+});
+
 router.get('/', async function (req, res) {
   const {page, page_size} = utils.paging(req.query.page, Number(req.query.page_size));
   res.json(ApiResponse.success(await Token.findAndCountAll({
@@ -68,16 +114,22 @@ router.post('/check', async function (req, res) {
       limit: 100,
       where: {
         status: 1,
-        supplier: 'openai'
+        [Op.not]: {
+          supplier: 'anthropic'
+        }
       },
       raw: true
     });
     tokens.forEach((token) => {
-      addUsageCheckTask({
-        id: Number(token.id),
-        key: token.key,
-        host: token.host
-      });
+      if (token.supplier === 'openai') {
+        addUsageCheckTask({
+          id: Number(token.id),
+          key: token.key,
+          host: token.host
+        });
+      } else if (token.supplier === 'stability') {
+        addStabilityUsageCheckTask({id: Number(token.id)})
+      }
     });
     res.json(ApiResponse.success({}, '提交成功'));
     return;

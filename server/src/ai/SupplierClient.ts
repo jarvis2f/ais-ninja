@@ -1,11 +1,7 @@
-import {Token} from "../models/Token";
-import OpenAIApiProxy from "./openai/OpenAIApiProxy";
-import {OpenAIApi} from "openai";
-import {AnthropicProxy} from "./anthropic/AnthropicProxy";
-import Anthropic from "@anthropic-ai/sdk";
-import {ApiClient, Caller} from "./types";
-import {getLogger} from "../utils/logger";
 import ApiProxy from "./ApiProxy";
+import {ApiClient, Caller} from "./types";
+import {Token} from "../models/Token";
+import {getLogger} from "../utils/logger";
 
 const logger = getLogger("ai");
 
@@ -19,7 +15,7 @@ export abstract class SupplierClient<T extends ApiClient> {
 
   abstract buildClient(token: Token): T ;
 
-  abstract getAvailableModels(): { label: string, value: string }[];
+  abstract buildProxy(client: [Token, T], caller: Caller): [Token, ApiProxy<T>];
 
   async initClients() {
     let tokens = await Token.findAll({
@@ -55,28 +51,14 @@ export abstract class SupplierClient<T extends ApiClient> {
 
   getRandomClient(model: string, caller: Caller): [Token, ApiProxy<T>] {
     const clients = Array.from(this.clients.values());
+    const noModel = model === this.supplier;
     const client = clients.filter((value: [Token, T]) => {
       const [token, _] = value;
-      return token.models?.split(",").includes(model);
+      return token.models?.split(",").includes(model) || noModel;
     }).at(Math.floor(Math.random() * clients.length));
     if (!client) {
-      throw new Error(`No OpenAI client found for model ${model}`);
+      throw new Error(`No ${this.supplier} client found for model ${model}`);
     }
     return this.buildProxy(client, caller);
-  }
-
-  private buildProxy(client: [Token, T], caller: Caller): [Token, ApiProxy<T>] {
-    let proxy: any;
-    switch (this.supplier) {
-      case 'openai':
-        proxy = new OpenAIApiProxy(client[1] as OpenAIApi, caller.user_id!, caller.api_key_id);
-        break;
-      case 'anthropic':
-        proxy = new AnthropicProxy(client[1] as Anthropic, caller.user_id!, caller.api_key_id);
-        break;
-      default:
-        throw new Error(`No proxy found for supplier ${this.supplier}`);
-    }
-    return [client[0], proxy];
   }
 }

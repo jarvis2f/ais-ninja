@@ -3,21 +3,18 @@ import ApiResponse from "../../utils/response";
 import {User, UserLevelEnum} from "../../models/User";
 import {Config, ConfigNameEnum} from "../../models/Config";
 import {Message} from "../../models/Message";
-import {OpenAIApi} from "openai";
 import {OpenAIChat} from "../../ai/openai/OpenAIChat";
 import {Plugin} from "../../models/Plugin";
 import {Functions} from "../../models/Functions";
 import utils from "../../utils";
 import {Action, ActionTypeEnum} from "../../models/Action";
-import {RedemptionCodeTypeEnum} from "../../models/RedemptionCode";
-import {Turnover} from "../../models/Turnover";
 import {getLogger} from "../../utils/logger";
 import {CreateImageRequestSizeEnum} from "openai/api";
 import {AnthropicChat} from "../../ai/anthropic/Chat";
 import {supplierClientAgent} from "../../ai";
 import {Message as AiMessage} from "../../ai/types";
-import charging from "../../charging";
 import OpenAIApiProxy from "../../ai/openai/OpenAIApiProxy";
+import {StabilityProxy} from "../../ai/stability/StabilityProxy";
 
 
 const router = Router();
@@ -46,7 +43,7 @@ router.post('/chat/completions', async (req, res) => {
     }]
   }).then(user => user?.toJSON()) as User;
   const level_expire_time = new Date(user?.level_expire_time);
-  let level = user?.level || UserLevelEnum.NORMAL;
+  let level = user?.level;
   if (level_expire_time < new Date()) {
     level = UserLevelEnum.NORMAL;
   }
@@ -91,24 +88,10 @@ router.post('/chat/completions', async (req, res) => {
     ])
   }
 
-  // const DEDUCT_INTEGRAL_HANDLER = async (message: AiMessage[], model: string, usedTokens: number | [number, number]) => {
-  //   let integral = await charging.calculateUsage(model, user.level, usedTokens);
-  //   if (integral > 0) {
-  //     await User.updateUserVIP({
-  //       user_id: user_id,
-  //       type: RedemptionCodeTypeEnum.INTEGRAL,
-  //       value: integral,
-  //       operate: 'decrement'
-  //     });
-  //     await Turnover.add(user_id, `{对话}(${options.model})`, `-${integral}{积分}`);
-  //   }
-  // }
-
   if (options.model.startsWith('claude')) {
     await new AnthropicChat(res, options, parentMessageId, history_messages)
       .set_user_id(user_id)
       .add_finish_handler(SAVE_MESSAGE_HANDLER)
-      // .add_finish_handler(DEDUCT_INTEGRAL_HANDLER)
       .chat({
         role: 'user',
         content: prompt
@@ -119,7 +102,6 @@ router.post('/chat/completions', async (req, res) => {
       .set_user_id(user_id)
       .setDebug(debug)
       .add_finish_handler(SAVE_MESSAGE_HANDLER)
-      // .add_finish_handler(DEDUCT_INTEGRAL_HANDLER)
       .chat({
         role: 'user',
         content: prompt
@@ -129,63 +111,52 @@ router.post('/chat/completions', async (req, res) => {
   await Action.add(user_id, ActionTypeEnum.CHAT, utils.getClientIP(req), `对话(${options.model})`);
 });
 
-router.post('/images/generations', async (req, res) => {
+router.post('/:supplier/images/generations', async (req, res) => {
   const user_id = req?.user_id;
-  if (!user_id) {
-    res.json(ApiResponse.miss());
-    return;
-  }
-  const {prompt, n = 1, width = 256, height = 256, response_format = 'url'} = req.body;
-  const size = `${width}x${height}` as CreateImageRequestSizeEnum;
-  const user = await User.findByPk(user_id).then(user => user?.toJSON()) as User;
-  if (!user) {
+  const supplier = req.params.supplier;
+  if (!user_id || !supplier) {
     res.json(ApiResponse.miss());
     return;
   }
   const ip = utils.getClientIP(req);
-  let deductIntegral = 0;
-  const drawUsePrice = await Config.getConfig(ConfigNameEnum.DRAW_USE_PRICE);
-  if (drawUsePrice) {
-    const drawUsePriceJson = JSON.parse(drawUsePrice.toString());
-    for (const item of drawUsePriceJson) {
-      if (item.size === size) {
-        deductIntegral = Number(item.integral);
-      }
+  if (supplier === 'openai') {
+    const {prompt, n = 1, width = 256, height = 256, response_format = 'url'} = req.body;
+    const size = `${width}x${height}` as CreateImageRequestSizeEnum;
+    const openai = supplierClientAgent.getRandomClient('dall-e', user_id)[1] as OpenAIApiProxy;
+    const response = await openai.createImage({
+      prompt,
+      n,
+      size,
+      response_format
+    }).catch((e) => {
+      logger.error(e);
+      return null;
+    });
+    if (!response) {
+      res.json(ApiResponse.error(500, req.t('生成失败')));
+      return;
     }
+    Action.add(user_id, ActionTypeEnum.DRAW, ip, `openai绘画(${size})`);
+    res.json(ApiResponse.success(response.data?.data));
+  } else if (supplier === 'stability') {
+    const {model, ...params} = req.body;
+    logger.debug(`stability generation params: ${JSON.stringify(params)} model: ${model}`);
+    const stability = supplierClientAgent.getRandomClient(model, user_id)[1] as StabilityProxy;
+    await stability.textToImage(model, params).then((response) => {
+      res.json(ApiResponse.success(response.data.artifacts));
+      Action.add(user_id, ActionTypeEnum.DRAW, ip, `stability绘画(${model})`);
+    }).catch((e) => {
+      let response = e.response;
+      if (response) {
+        logger.error(response.data);
+      } else {
+        logger.error(e);
+      }
+      res.json(ApiResponse.error(500, req.t('生成失败')));
+    });
+  } else {
+    res.json(ApiResponse.error(500, req.t('supplier not found')));
   }
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayTime = today.getTime();
-  const vipExpireTime = new Date(user.vip_expire_time).getTime();
-  if (!(user.integral! > deductIntegral || vipExpireTime >= todayTime)) {
-    res.json(ApiResponse.error(500, req.t('余额不足')));
-    return;
-  }
-  const openai = supplierClientAgent.getRandomClient('dall-e', {user_id})[1] as OpenAIApiProxy;
-  const response = await openai.createImage({
-    prompt,
-    n,
-    size,
-    response_format
-  }).catch((e) => {
-    logger.error(e);
-    return null;
-  });
-  if (!response) {
-    res.json(ApiResponse.error(500, req.t('生成失败')));
-    return;
-  }
-  // if (vipExpireTime < todayTime) {
-  //   await User.updateUserVIP({
-  //     user_id: user_id,
-  //     type: RedemptionCodeTypeEnum.INTEGRAL,
-  //     value: deductIntegral,
-  //     operate: 'decrement'
-  //   });
-  //   await Turnover.add(user_id, `{绘画} ${size}`, `-${deductIntegral}{积分}`);
-  // }
-  Action.add(user_id, ActionTypeEnum.DRAW, ip, `绘画(${size})`);
-  res.json(ApiResponse.success(response.data?.data));
 })
 
 export default router;

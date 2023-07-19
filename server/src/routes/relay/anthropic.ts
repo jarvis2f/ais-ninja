@@ -5,6 +5,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import {Token} from "../../models/Token";
 import CompletionCreateParams = Anthropic.CompletionCreateParams;
 import {AnthropicProxy} from "../../ai/anthropic/AnthropicProxy";
+import Completion = Anthropic.Completion;
+import {APIResponse} from "@anthropic-ai/sdk/dist/cjs/core";
+import {Stream} from "@anthropic-ai/sdk/streaming";
 
 const router = Router();
 const v1_router = Router();
@@ -21,29 +24,27 @@ v1_router.post('/complete', async (req, res) => {
     const request = {...req.body} as CompletionCreateParams & { stream?: boolean };
     const response = await anthropic.createCompletions(request as any);
     if (stream) {
-      // // @ts-ignore
-      // const data = response as APIResponse<Completion | Stream<Completion>>;
-      // for (const [key, value] of Object.entries(response.headers)) {
-      //   res.setHeader(key, value);
-      // }
-      // let responseData = '';
-      // data.on('data', (chunk) => {
-      //   responseData += chunk;
-      //   res.write(chunk);
-      // });
-      //
-      // data.on('end', () => {
-      //   res.end();
-      //   charging.chat_completions({user_id, api_key_id}, {request, response: responseData});
-      // });
+      // @ts-ignore
+      const data = response as APIResponse<Stream<Completion>>;
+      Object.keys(data.responseHeaders).forEach((key) => {
+        res.setHeader(key, data.responseHeaders[key]);
+      });
+
+      // @ts-ignore
+      data.on('data', (chunk) => {
+        res.write(chunk);
+      });
+
+      // @ts-ignore
+      data.on('end', () => {
+        res.end();
+      });
     } else {
       for (const [key, value] of Object.entries(response.responseHeaders)) {
         if (value) {
           res.setHeader(key, value);
         }
       }
-      res.json(response);
-      // charging.chat_completions({user_id, api_key_id}, {request, response: response.data});
       res.json(response);
     }
   } catch (err) {

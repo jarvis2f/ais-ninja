@@ -12,7 +12,7 @@ import {DeleteOutlined, LoadingOutlined} from '@ant-design/icons'
 
 import gpt4png from '@/assets/gpt4.png';
 import gpt3png from '@/assets/gpt3.png';
-import gptheaderpng from '@/assets/header.png';
+import gptheaderpng from '@/assets/avator/26.svg';
 import {ChatPlugin} from '@/types';
 import DefaultPluginAvatar from '@/components/DefaultPluginAvatar';
 

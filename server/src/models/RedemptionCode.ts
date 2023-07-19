@@ -121,7 +121,7 @@ class RedemptionCode extends Model<RedemptionCodeAttributes, RedemptionCodeCreat
         key: key,
         value: value.toString(),
         status: status,
-        type: utils.getKeyByValue(RedemptionCodeTypeEnum, type) as RedemptionCodeTypeEnum,
+        type: type as RedemptionCodeTypeEnum,
       };
 
       if (end_time) {

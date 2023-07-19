@@ -1,16 +1,13 @@
 import {create} from 'zustand'
 import {createJSONStorage, persist} from 'zustand/middleware'
-import {ChatGptConfig} from '@/types'
+import {ChatGptConfig, MixModelInfo} from '@/types'
 import {NotificationInfo} from '@/types/admin'
 
 export interface ConfigState {
 	// 配置信息
 	config: ChatGptConfig
 	// 模型
-	models: Array<{
-		label: string
-		value: string
-	}>
+	models: Array<MixModelInfo>
 	// 配置弹窗开关
 	configModal: boolean
 	// 修改配置弹窗

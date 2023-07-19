@@ -1,12 +1,12 @@
 import {Router} from "express";
 import {getLogger} from "../../utils/logger";
-import {openai_models, openai_models_map} from "./openai_models";
 import {supplierClientAgent} from "../../ai";
 import {Token} from "../../models/Token";
 import {CreateEmbeddingRequest, CreateImageRequest} from "openai";
 import * as http from "http";
 import {CreateChatCompletionRequest, CreateCompletionRequest} from "openai/api";
 import OpenAIApiProxy from "../../ai/openai/OpenAIApiProxy";
+import {Caller} from "../../ai/types";
 
 const router = Router();
 const model_router = Router();
@@ -17,28 +17,25 @@ router.use('/v1', v1_router);
 const logger = getLogger('routes:relay:openai');
 
 model_router.get('', async (req, res) => {
-  res.json({
-    object: 'list',
-    data: openai_models
-  })
+  const {user_id, api_key_id} = req;
+  const [_, openAIApi] = supplierClientAgent.getRandomClient("openai", {user_id, api_key_id}) as [Token, OpenAIApiProxy];
+  openAIApi.listModels().then((models) => {
+    res.json(models);
+  }).catch((err) => {
+    logger.error(err);
+    res.status(err.status).json(err.response.data);
+  });
 });
 
 model_router.get('/:model', async (req, res) => {
-  const modelId = req.params.model;
-  let model = openai_models_map.get(modelId);
-  if (!model) {
-    res.status(404).json({
-      error: {
-        message: `"The model '${modelId}' does not exist"`,
-        type: 'invalid_request_error',
-        code: 'model_not_found',
-        param: 'model'
-      }
-    });
-    return;
-  } else {
+  const {user_id, api_key_id} = req;
+  const [_, openAIApi] = supplierClientAgent.getRandomClient("openai", {user_id, api_key_id}) as [Token, OpenAIApiProxy];
+  openAIApi.retrieveModel(req.params.model).then((model) => {
     res.json(model);
-  }
+  }).catch((err) => {
+    logger.error(err);
+    res.status(err.status).json(err.response.data);
+  });
 });
 
 v1_router.post('/completions', async (req, res) => {

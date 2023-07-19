@@ -24,7 +24,7 @@ async function precreate(base: { api: string, key: string }, config: {}, options
     sign_type: 'MD5',
     ...data
   });
-  const api = base.api + '/pay/apisubmit';
+  const api = base.api + '/mapi.php';
   const response = await fetch(api, {
     method: 'POST',
     headers: {
@@ -38,7 +38,7 @@ async function precreate(base: { api: string, key: string }, config: {}, options
     qrcode?: string
     urlscheme?: string
   };
-  logger.debug(`支付结构:${json}`);
+  logger.debug(`支付结构:${JSON.stringify(json)}`);
   return {
     code: json.code === 1 ? 0 : json.code,
     pay_url: json.payurl || json.qrcode || json.urlscheme

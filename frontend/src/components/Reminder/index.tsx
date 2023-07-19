@@ -6,6 +6,7 @@ import assistantPNG from '@/assets/assistant.png';
 import articlePNG from '@/assets/article.png';
 import filmPNG from '@/assets/film.png';
 import robotPNG from '@/assets/robot.png';
+import Card from "@/components/Card";
 
 function Reminder() {
 	const {t} = useTranslation();
@@ -14,27 +15,27 @@ function Reminder() {
 		{
 			id: 'zhichangzhuli',
 			icon: assistantPNG,
-			name: t('职场助理'),
-			desc: t('作为手机斗地主游戏的产品经理，该如何做成国内爆款？')
+			name: t('多模型支持'),
+			desc: t('支持OpenAI(ChatGPT4)、anthropic(claude-100k)等大模型'),
+			color: 'linear-gradient(160deg, #0093E9 0%, #80D0C7 50%, #FF89C0 100%)'
 		},
 		{
 			id: 'dianyingjiaoben',
 			icon: filmPNG,
-			name: t('电影脚本'),
-			desc: t('写一段电影脚本，讲一个北漂草根创业逆袭的故事')
+			name: t('插件系统'),
+			desc: t('海量插件，自定义插件满足你的各种需求'),
+			color: 'linear-gradient(160deg, #8A2BE2 0%, #4258D0 40%, #1FC4CB 100%)'
 		},
 		{
 			id: 'cuanxieduanwen',
 			icon: articlePNG,
-			name: t('撰写短文'),
-			desc: t('写一篇短文，用故事阐释幸福的意义')
+			name: t('绘画、API代理'),
+			desc: (<>
+				<p>{t('支持 DALL.E2、stability 绘图模型')}</p>
+				<p>{t('支持 API 代理，实时精准计费')}</p>
+			</>),
+			color: 'linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%)'
 		},
-		{
-			id: 'daimabianxie',
-			icon: codePNG,
-			name: t('代码编写'),
-			desc: t('使用JavaScript写一个获取随机数的函数')
-		}
 	];
 
 	return (
@@ -53,11 +54,7 @@ function Reminder() {
 			<div className={styles.reminder_question}>
 				{width > 600 &&
 					list.map((item) => (
-						<div key={item.id} className={styles.reminder_question_item}>
-							<img src={item.icon} alt=""/>
-							<h3>{item.name}</h3>
-							<p>{item.desc}</p>
-						</div>
+						<Card style={{backgroundImage: item.color}} title={item.name} para={item.desc}/>
 					))}
 			</div>
 			<div className={styles.reminder_policy}>

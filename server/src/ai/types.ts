@@ -1,14 +1,23 @@
 import {getLogger} from "../utils/logger";
 import {OpenAIApi} from "openai";
 import Anthropic from "@anthropic-ai/sdk";
+import {StabilityAPI} from "./stability/StabilityAPI";
+import {StabilityRestAPI} from "./stability/StabilityRestAPI";
 
 const logger = getLogger("ai");
 
-export type ApiClient = OpenAIApi | Anthropic;
+export type ApiClient = OpenAIApi | Anthropic | StabilityRestAPI;
 
 export interface Caller {
   user_id?: number;
   api_key_id?: number;
+}
+
+export interface MixModel {
+  name: string;
+  model: string;
+  supplier: string;
+  type: 'text' | 'image' | 'video';
 }
 
 /**

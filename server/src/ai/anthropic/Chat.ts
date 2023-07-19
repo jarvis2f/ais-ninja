@@ -32,7 +32,7 @@ export class AnthropicChat extends Chat {
 
   async chat(message: Message) {
     await super.chat(message);
-    const [_, anthropic] = supplierClientAgent.getRandomClient(this.options.model, {user_id: this.user_id}) as [Token, AnthropicProxy];
+    const [_, anthropic] = supplierClientAgent.getRandomClient(this.options.model, this.user_id!) as [Token, AnthropicProxy];
     const response = await anthropic.createCompletions({
       max_tokens_to_sample: 256,
       ...this.options,

@@ -1,4 +1,11 @@
-import {delAdminToken, getAdminTokens, postAdminToken, postAdminTokenCheck, putAdminToken} from '@/request/adminApi';
+import {
+	delAdminToken,
+	getAdminTokens,
+	getTokenModels,
+	postAdminToken,
+	postAdminTokenCheck,
+	putAdminToken
+} from '@/request/adminApi';
 import {TokenInfo} from '@/types/admin';
 import {
 	ActionType,
@@ -12,103 +19,7 @@ import {
 } from '@ant-design/pro-components';
 import {Button, Form, message, Tag} from 'antd';
 import {useRef, useState} from 'react';
-
-const openaiModels = [
-	{
-		label: 'gpt-3.5-turbo',
-		value: 'gpt-3.5-turbo'
-	},
-	{
-		label: 'gpt-3.5-turbo-16k',
-		value: 'gpt-3.5-turbo-16k'
-	},
-	{
-		label: 'gpt-3.5-turbo-0613',
-		value: 'gpt-3.5-turbo-0613'
-	},
-	{
-		label: 'gpt-3.5-turbo-16k-0613',
-		value: 'gpt-3.5-turbo-16k-0613'
-	},
-	{
-		label: 'gpt-4',
-		value: 'gpt-4'
-	},
-	{
-		label: 'gpt-4-0613',
-		value: 'gpt-4-0613'
-	},
-	{
-		label: 'gpt-4-32k-0613',
-		value: 'gpt-4-32k-0613'
-	},
-	{
-		label: 'gpt-4-32k',
-		value: 'gpt-4-32k'
-	},
-	{
-		label: 'text-davinci-003',
-		value: 'text-davinci-003'
-	},
-	{
-		label: 'text-davinci-002',
-		value: 'text-davinci-002'
-	},
-	{
-		label: 'code-davinci-002',
-		value: 'code-davinci-002'
-	},
-	{
-		label: 'DALL·E绘画',
-		value: 'dall-e'
-	}
-];
-const anthropicModels = [
-	{
-		label: 'claude-1',
-		value: 'claude-1'
-	},
-	{
-		label: 'claude-1-100k',
-		value: 'claude-1-100k'
-	},
-	{
-		label: 'claude-instant-1',
-		value: 'claude-instant-1'
-	},
-	{
-		label: 'claude-instant-1-100k',
-		value: 'claude-instant-1-100k'
-	},
-	{
-		label: 'claude-1.3',
-		value: 'claude-1.3'
-	},
-	{
-		label: 'claude-1.3-100k',
-		value: 'claude-1.3-100k'
-	},
-	{
-		label: 'claude-1.2',
-		value: 'claude-1.2'
-	},
-	{
-		label: 'claude-1.0',
-		value: 'claude-1.0'
-	},
-	{
-		label: 'claude-instant-1.1',
-		value: 'claude-instant-1.1'
-	},
-	{
-		label: 'claude-instant-1.1-100k',
-		value: 'claude-instant-1.1-100k'
-	},
-	{
-		label: 'claude-instant-1.0',
-		value: 'claude-instant-1.0'
-	}
-];
+import {MixModelInfo} from "@/types";
 
 function TokenPage() {
 
@@ -116,13 +27,23 @@ function TokenPage() {
 	const [form] = Form.useForm<TokenInfo & {
 		models: Array<string>
 	}>();
-	const [edidInfoModal, setEdidInfoModal] = useState<{
+	const [editInfoModal, setEditInfoModal] = useState<{
 		open: boolean,
 		info: TokenInfo | undefined
 	}>({
 		open: false,
 		info: undefined
 	});
+	const [mixInfoModels, setMixInfoModels] = useState<Array<MixModelInfo>>([]);
+
+	function handleSupplierChange(value: string) {
+		if (!value) return;
+		getTokenModels(value).then((res) => {
+			if (res.code) return
+			setMixInfoModels(res.data)
+		});
+	}
+
 	const columns: ProColumns<TokenInfo>[] = [
 		{
 			title: 'ID',
@@ -170,13 +91,21 @@ function TokenPage() {
 			title: '额度',
 			dataIndex: 'limit',
 			render: (_, data) => {
-				return (
-					<div>
-						<p>总额度：{data.limit.toFixed(2)}</p>
-						<p>已使用：{data.usage}</p>
-						<p>还剩余：{(data.limit - data.usage).toFixed(2)}</p>
-					</div>
-				)
+				if (data.supplier === 'openai') {
+					return (
+						<div>
+							<p>总额度：{data.limit.toFixed(2)}</p>
+							<p>已使用：{data.usage}</p>
+							<p>还剩余：{(data.limit - data.usage).toFixed(2)}</p>
+						</div>
+					)
+				} else if (data.supplier === 'stability') {
+					return (
+						<div>
+							<p>剩余：{data.limit.toFixed(2)}</p>
+						</div>
+					)
+				}
 			}
 		},
 		{
@@ -197,12 +126,13 @@ function TokenPage() {
 					key="edit"
 					type="link"
 					onClick={() => {
-						setEdidInfoModal(() => {
+						setEditInfoModal(() => {
 							const models = data.models ? data.models.split(',') : []
 							form?.setFieldsValue({
 								...data,
 								models
 							});
+							handleSupplierChange(data.supplier)
 							return {
 								open: true,
 								info: data
@@ -271,7 +201,7 @@ function TokenPage() {
 							type="primary"
 							size="small"
 							onClick={() => {
-								setEdidInfoModal(() => {
+								setEditInfoModal(() => {
 									return {
 										open: true,
 										info: undefined
@@ -291,7 +221,7 @@ function TokenPage() {
 				models: Array<string>
 			}>
 				title="Token信息"
-				open={edidInfoModal.open}
+				open={editInfoModal.open}
 				form={form}
 				initialValues={{
 					status: 1
@@ -300,7 +230,7 @@ function TokenPage() {
 					if (!visible) {
 						form.resetFields();
 					}
-					setEdidInfoModal((info) => {
+					setEditInfoModal((info) => {
 						return {
 							...info,
 							open: visible
@@ -310,12 +240,12 @@ function TokenPage() {
 				onFinish={async (values) => {
 					console.log(values);
 					const models = values.models.join(',')
-					if (edidInfoModal.info?.id) {
+					if (editInfoModal.info?.id) {
 						console.log('进入编辑')
 						const res = await putAdminToken({
 							...values,
 							models,
-							id: edidInfoModal.info?.id,
+							id: editInfoModal.info?.id,
 						});
 						if (res.code) {
 							message.error('编辑失败')
@@ -370,6 +300,10 @@ function TokenPage() {
 							label: 'Anthropic',
 							value: 'anthropic'
 						},
+						{
+							label: 'Stability',
+							value: 'stability'
+						},
 					]}
 					placeholder="请选择厂商"
 					rules={[
@@ -380,10 +314,20 @@ function TokenPage() {
 					]}
 				/>
 				<ProFormSelect
-					shouldUpdate={(prevValues, curValues) => prevValues.supplier !== curValues.supplier}
+					shouldUpdate={(prevValues, curValues) => {
+						const change = prevValues.supplier !== curValues.supplier;
+						if (change && curValues.supplier)
+							handleSupplierChange(curValues.supplier);
+						return change;
+					}}
 					name="models"
 					label="适用模型"
-					request={async () => form.getFieldValue('supplier') === 'openai' ? openaiModels : anthropicModels}
+					options={mixInfoModels.map((item) => (
+						{
+							label: item.name,
+							value: item.model
+						}
+					))}
 					fieldProps={{
 						mode: 'multiple',
 					}}

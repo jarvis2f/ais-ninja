@@ -12,15 +12,49 @@ import {
 import {GPTTokens, supportModelType} from "gpt-tokens";
 import {getLogger} from "../utils/logger";
 import {UserApiKeyUsage} from "../models/UserApiKeyUsage";
+import Anthropic from "@anthropic-ai/sdk";
+import {APIResponse} from "@anthropic-ai/sdk/dist/cjs/core";
+import {ImageResponse, ImageToImageParams, TextToImageParams} from "../ai/stability/types";
+import CompletionCreateParams = Anthropic.CompletionCreateParams;
+import Completion = Anthropic.Completion;
 
 const logger = getLogger("charging");
 
+/**
+ * {
+ *   "模型名称": {
+ *     "input": "提示倍率",
+ *     "output": "完成倍率"
+ *   },
+ *   "模型名称2": "单倍率，如：嵌入模型(text-embedding-ada-002)",
+ *   "dall-e": {
+ *     "256*256": "openAI图形生成倍率 按照size设置"
+ *   },
+ *   "!SDXL": {
+ *     "512*512": {
+ *        "15": "非 SDXL 模型的 512*512 steps为15的倍率"
+ *     }
+ *   },
+ *   "stable-diffusion-xl-1024-v0-9": {
+ *     "15": "此模型只跟steps有关"
+ *   },
+ *   "stable-diffusion-xl-beta-v2-2-2": {
+ *      "512*512": {
+ *        "15": "非 SDXL 模型的 512*512 steps为15的倍率"
+ *      }
+ *   }
+ * }
+ */
 interface ModelRatio {
   [key: string]: {
     input: number;
     output: number;
   } | number | {
     [key: string]: number
+  } | {
+    [key: string]: {
+      [key: string]: number
+    }
   };
 }
 
@@ -33,15 +67,15 @@ interface Caller {
   api_key_id?: number;
 }
 
-async function calculateUsage(model: string, level: UserLevelEnum, tokens: number | [number, number]): Promise<number> {
-  return calculateUsageGroup(model, level, tokens).then((usage) => {
+async function calculateUsage(model: string, level: UserLevelEnum, tokens: number, ...modelRatioKeys: string[]): Promise<number> {
+  return calculateUsageGroup(model, level, tokens, ...modelRatioKeys).then((usage) => {
     return usage[0] + usage[1];
   });
 }
 
 async function calculateUsageGroup(model: string, level: UserLevelEnum,
                                    tokens: number | [number, number],
-                                   modelRatioKey: string = ''): Promise<[number, number]> {
+                                   ...modelRatioKeys: string[]): Promise<[number, number]> {
   const modelRatioItem = await Config.getConfig(ConfigNameEnum.MODEL_RATIO).then((config) => {
     let modelRatio: ModelRatio = JSON.parse(config);
     return modelRatio[model];
@@ -60,15 +94,35 @@ async function calculateUsageGroup(model: string, level: UserLevelEnum,
     output = modelRatioItem;
   } else {
     if (!modelRatioItem.input && !modelRatioItem.output) {
-      if (!modelRatioKey) {
-        logger.error(`Model ${model} ratio item is invalid: ${modelRatioItem}, charge failed`);
+      if (!modelRatioKeys || modelRatioKeys.length === 0) {
+        logger.error(`Model ${model} ratio item is invalid: ${modelRatioItem}, lack modelRatioKeys, charge failed`);
         return [0, 0];
       }
       input = 1;
-      output = (modelRatioItem as any)[modelRatioKey];
+      // 递归获取ratio
+      const getRatio = (ratioConfig: any): number | object => {
+        if (typeof ratioConfig === 'number') {
+          return ratioConfig;
+        } else if (typeof ratioConfig === 'object') {
+          const key = modelRatioKeys.shift();
+          if (!key) {
+            logger.error(`Model ${model} ratio item is invalid: ${modelRatioItem}, charge failed`);
+            return 0;
+          }
+          return getRatio(ratioConfig[key]);
+        } else {
+          logger.error(`Model ${model} ratio item is invalid: ${modelRatioItem}, charge failed`);
+          return 0;
+        }
+      }
+      const ratio = getRatio(modelRatioItem);
+      if (typeof ratio !== 'number') {
+        return [0, 0];
+      }
+      output = ratio as number;
     } else if (modelRatioItem.input && modelRatioItem.output) {
-      input = modelRatioItem.input;
-      output = modelRatioItem.output;
+      input = modelRatioItem.input as number;
+      output = modelRatioItem.output as number;
     } else {
       logger.error(`Model ${model} ratio item is invalid: ${modelRatioItem}, charge failed`);
       return [0, 0];
@@ -221,7 +275,7 @@ async function image_generations(caller: Caller, model: string, data: {
   let user = await User.findByPk(user_id, {raw: true});
   const {request, response} = data;
   const {size, n} = request;
-  const [_, output_integral] = await calculateUsageGroup(model, user!.level, n || 1, size);
+  const output_integral = await calculateUsage(model, user!.level, n || 1, size as string);
 
   await UserApiKeyUsage.create({
     user_id: user_id!,
@@ -301,10 +355,127 @@ function openai_stream_parse(data: string) {
   return message;
 }
 
+async function anthropic_completions(caller: Caller, data: {
+  request: CompletionCreateParams,
+  response: APIResponse<Completion> | string
+}) {
+  const {user_id, api_key_id} = caller;
+  let user = await User.findByPk(user_id, {raw: true});
+  const {request, response} = data;
+  const {stream} = request;
+  let model = 'gpt-4' as supportModelType;
+  let output_message;
+  if (stream) {
+    output_message = anthropic_stream_parse(response as string);
+  } else {
+    output_message = (response as APIResponse<Completion>).completion;
+  }
+  let input = new GPTTokens({
+    model: model,
+    messages: [{
+      content: request.prompt,
+      role: 'user',
+    }]
+  }).usedTokens;
+  let output = 0;
+  if (output_message && output_message.length > 0) {
+    output = new GPTTokens({
+      model: model,
+      messages: [{
+        content: output_message,
+        role: 'assistant',
+      }] as any,
+    }).usedTokens;
+  }
+
+  const [input_integral, output_integral] = await calculateUsageGroup(request.model as string, user!.level, [input, output]);
+  const integral = input_integral + output_integral;
+
+  await UserApiKeyUsage.create({
+    user_id: user_id!,
+    api_key_id: api_key_id!,
+    model: request.model as string,
+    request: JSON.stringify(request),
+    response: JSON.stringify(response),
+    prompt_tokens: input,
+    completion_tokens: output,
+    prompt_integral: input_integral,
+    completion_integral: output_integral,
+  });
+
+  if (integral > 0) {
+    await User.updateUserIntegralOrLevelTime({
+      user_id: user_id!,
+      quantity: -integral,
+      type: 1,
+      describe: `{API调用}(${request.model})`
+    });
+  }
+}
+
+function anthropic_stream_parse(data: string) {
+  if (!data || data.length === 0) return;
+  let content = '';
+  for (let line of data.split('event: ')) {
+    line = line.trim();
+    if (line != 'completion' || line.length <= 0) break;
+    line = line.split('data: ')[1];
+    if (!line || line.length <= 0) break;
+    try {
+      const item = JSON.parse(line);
+      content += item.completion;
+    } catch (e) {
+      logger.error(`openai stream parse error: ${e}, line: ${line}`);
+    }
+  }
+  return content;
+}
+
+async function stability_text_to_image(caller: Caller, data: {
+  engine_id: string,
+  request: TextToImageParams,
+  response: ImageResponse
+}) {
+  const {user_id, api_key_id} = caller;
+  let user = await User.findByPk(user_id, {raw: true});
+  const {request, response, engine_id} = data;
+  const modelRatioKeys: string[] = [];
+  if (engine_id === 'stable-diffusion-xl-1024-v0-9') {
+    modelRatioKeys.push(String(request.steps || 30));
+  } else {
+    modelRatioKeys.push(`${request.width}*${request.height}`);
+    modelRatioKeys.push(String(request.steps || 30));
+  }
+  const output_integral = await calculateUsage(engine_id, user!.level, request.samples || 1, ...modelRatioKeys);
+
+  await UserApiKeyUsage.create({
+    user_id: user_id!,
+    api_key_id: api_key_id!,
+    model: engine_id,
+    request: JSON.stringify(request),
+    response: JSON.stringify(response),
+    prompt_tokens: 0,
+    completion_tokens: 0,
+    prompt_integral: 0,
+    completion_integral: output_integral,
+  });
+
+  if (output_integral > 0) {
+    await User.updateUserIntegralOrLevelTime({
+      user_id: user_id!,
+      quantity: -output_integral,
+      type: 1,
+      describe: `{API调用}(${engine_id})`
+    });
+  }
+}
+
 export default {
   calculateUsage,
   completions,
   chat_completions,
   image_generations,
   embeddings,
+  anthropic_completions,
+  stability_text_to_image
 };

@@ -85,20 +85,20 @@ function UserCenter() {
 					{/* 用户信息 */}
 					<UserInfoCard info={user_info}>
 						<div className={styles.user_center_operate}>
-							<Button block
-									onClick={() => {
-										setUserAccountModal({
-											open: true,
-											title: '修改账号',
-											type: 'account'
-										})
-										userAccountForm.setFieldsValue({
-											account: user_info?.account
-										})
-									}}
-							>
-								修改账号
-							</Button>
+							{/*<Button block*/}
+							{/*		onClick={() => {*/}
+							{/*			setUserAccountModal({*/}
+							{/*				open: true,*/}
+							{/*				title: '修改账号',*/}
+							{/*				type: 'account'*/}
+							{/*			})*/}
+							{/*			userAccountForm.setFieldsValue({*/}
+							{/*				account: user_info?.account*/}
+							{/*			})*/}
+							{/*		}}*/}
+							{/*>*/}
+							{/*	修改账号*/}
+							{/*</Button>*/}
 							<Button
 								block
 								type="dashed"
@@ -131,7 +131,7 @@ function UserCenter() {
 					<div className={`${styles.user_center_card}`}>
 						<h4>{t('我的邀请码')}</h4>
 						<div className={styles.user_center_invite}>
-							<p className={styles.user_center_invite_intro}>{t(`您可获得${invitee_reward}积分，您邀请的好友可获得${inviter_reward}积分`)}</p>
+							<p className={styles.user_center_invite_intro}>{t('您可获得{{invitee_reward}}积分，您邀请的好友可获得{{inviter_reward}}积分', {invitee_reward, inviter_reward})}</p>
 							<p className={styles.user_center_invite_code}>{user_info?.invite_code}</p>
 							<Button
 								type="primary"

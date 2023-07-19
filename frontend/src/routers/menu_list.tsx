@@ -24,6 +24,7 @@ import {
 	WalletFilled
 } from '@ant-design/icons'
 import React from "react";
+import {APIIcon} from "@/components/Icons";
 
 const web = [
 	{
@@ -43,6 +44,12 @@ const web = [
 		name: '商城',
 		icon: <ShopOutlined/>,
 		message: '账户余额和充值套餐记录'
+	},
+	{
+		path: '/user/apikey',
+		name: 'API',
+		icon: <APIIcon />,
+		message: '直接使用API调用智能AI'
 	},
 	{
 		path: 'https://github.com/jarvis2f/ais-ninja',

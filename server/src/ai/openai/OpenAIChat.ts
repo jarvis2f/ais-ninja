@@ -39,7 +39,7 @@ export class OpenAIChat extends Chat {
 
   async chat(message: Message) {
     await super.chat(message);
-    const [_, openai] = supplierClientAgent.getRandomClient(this.options.model, {user_id: this.user_id}) as [Token, OpenAIApiProxy];
+    const [_, openai] = supplierClientAgent.getRandomClient(this.options.model, this.user_id!) as [Token, OpenAIApiProxy];
     let response = await openai.createChatCompletion({
       messages: this.convert_custom(),
       functions: this.available_functions,

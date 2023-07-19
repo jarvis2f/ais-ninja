@@ -1,0 +1,166 @@
+.draw_config {
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+}
+
+.draw {
+	&_style {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		padding: 0.5rem;
+		&_button {
+			width: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			img {
+				width: 1.25rem;
+				height: 1.25rem;
+				border-radius: 0.25rem
+			}
+
+			h4 {
+				text-align: left;
+				padding-left: 4px;
+				width: 100%;
+			}
+		}
+
+		&_images {
+			height: 40%;
+			overflow-y: auto;
+			&_item {
+				display: flex;
+				flex-direction: column;
+				cursor: pointer;
+				text-align: center;
+				[class*="anticon"],img {
+					aspect-ratio: 1 / 1;
+					border-radius: 0.5rem;
+					margin-bottom: 0.38rem;
+				}
+
+				[class*="anticon"] {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					background-color: #e5e5e5;
+					color: #fff;
+					font-size: 4rem;
+				}
+			}
+		}
+	}
+
+	&_prompt {
+		padding: 5px;
+		display: flex;
+		flex-direction: column;
+		gap: 0.38rem;
+
+		[class*="ant-collapse-content-box"] {
+			padding: 0 !important;
+		}
+
+		textarea {
+			width: 100%;
+			resize: none;
+			border: none;
+			overflow-y: clip;
+		}
+
+		&_positive {
+
+		}
+
+		&_negative {
+
+		}
+	}
+
+	&_upload {
+		[class*="ant-upload"] {
+			width: 100%;
+			text-align: center;
+		}
+		[class*="ant-collapse"] {
+			border-radius: 0;
+		}
+		[class*="ant-collapse-item"] {
+			border: none;
+			border-radius: 0;
+		}
+
+		&_icon {
+			font-size: 24px;
+		}
+	}
+
+	&_setting {
+		[class*="ant-collapse"] {
+			border-radius: 0;
+		}
+		[class*="ant-collapse-item"] {
+			border-radius: 0!important;
+		}
+		&_size {
+			&_title {
+				display: flex;
+				justify-content: space-between;
+				padding: 0 4px;
+				img {
+					width: 1.4rem;
+				}
+			}
+		}
+
+		&_count {
+			&_title {
+				display: flex;
+				justify-content: space-between;
+				padding: 0 4px;
+			}
+		}
+
+		&_advance {
+
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-between;
+			align-items: center;
+
+			&_switch {
+				padding: 5px 0;
+				font-size: 16px;
+				flex-basis: 100%;
+				margin-bottom: 10px;
+
+				span {
+					margin-right: 4px;
+				}
+			}
+
+			&_item {
+				flex-basis: 50%;
+				margin-bottom: 10px;
+				padding: 0 5px;
+
+				&:nth-of-type(4) {
+					flex-basis: 100%;
+					& > div {
+						width: 100%;
+					}
+				}
+
+				&:nth-of-type(5) {
+					flex-basis: 100%;
+					& > div {
+						width: 100%;
+					}
+				}
+			}
+		}
+	}
+}

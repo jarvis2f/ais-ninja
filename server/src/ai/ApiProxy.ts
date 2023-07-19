@@ -1,5 +1,5 @@
 import {User} from "../models/User";
-import {ApiClient, Caller} from "./types";
+import {ApiClient, Caller, MixModel} from "./types";
 
 export default abstract class ApiProxy<T extends ApiClient> {
 
@@ -19,5 +19,7 @@ export default abstract class ApiProxy<T extends ApiClient> {
       throw new Error(`User ${this.caller.user_id} has no quota`);
     });
   }
+
+  abstract listModels(mix?: boolean): Promise<MixModel[]>;
 
 }

@@ -1,8 +1,8 @@
-import {createPlugin, installModule, installModuleIfNeeded, PLUGINS_MODULE_DIR} from "../../../src/ai/openai/plugins";
+import {createPlugin, installModule, installModuleIfNeeded, PLUGINS_MODULE_DIR} from "../../../../src/ai/openai/plugins";
 import * as path from 'path';
 import {Configuration, OpenAIApi} from "openai";
-import {supplierClientAgent} from "../../../src/ai";
-import OpenAIApiProxy from "../../../src/ai/openai/OpenAIApiProxy";
+import {supplierClientAgent} from "../../../../src/ai";
+import OpenAIApiProxy from "../../../../src/ai/openai/OpenAIApiProxy";
 require('dotenv').config({
   path: path.resolve(__dirname, '../../../.env')
 });
@@ -195,10 +195,10 @@ test('Execute plugin code with non-existent function name', async () => {
 });
 
 // mock getRandomClient()
-jest.mock('../../../src/chatgpt', () => ({
+jest.mock('../../../src/ai', () => ({
   getRandomClient: jest.fn((...args) => {
     console.log('key', process.env.TEST_OPENAI_API_KEY);
-    return [null, new OpenAIApi(new Configuration({apiKey: process.env.TEST_OPENAI_API_KEY}))];
+    return [null, new OpenAIApiProxy(new OpenAIApi(new Configuration({apiKey: process.env.TEST_OPENAI_API_KEY})), 1, 1)];
   })
 }));
 

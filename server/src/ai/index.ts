@@ -2,23 +2,25 @@ import {getLogger} from "../utils/logger";
 import {Transform, TransformCallback} from "stream";
 import {OpenAIClient} from "./openai";
 import {AnthropicClient} from "./anthropic";
+import {StabilityClient} from "./stability";
+import {SupplierClient} from "./SupplierClient";
 import {Token} from "../models/Token";
-import {OpenAIApi} from "openai";
-import Anthropic from "@anthropic-ai/sdk";
+import {GPTTokens} from "gpt-tokens";
+import ApiProxy from "./ApiProxy";
 import {
-  ApiClient, Caller,
+  ApiClient,
+  Caller,
   DefaultDataHandler,
   DefaultStopHandler,
   FinishHandler,
   Message,
   MessageHandler,
+  MixModel,
   PartMessage,
 } from "./types";
-import {GPTTokens} from "gpt-tokens";
-import {SupplierClient} from "./SupplierClient";
-import ApiProxy from "./ApiProxy";
 
-const logger = getLogger("chatgpt");
+
+const logger = getLogger("ai");
 
 export let supplierClientAgent: SupplierClientAgent;
 
@@ -30,11 +32,12 @@ export function initClients() {
 
 export class SupplierClientAgent {
 
-  private supplierClients = new Map<string, SupplierClient<OpenAIApi | Anthropic>>;
+  private supplierClients = new Map<string, SupplierClient<ApiClient>>;
 
   constructor() {
     this.supplierClients.set(AnthropicClient.SUPPLIER, new AnthropicClient());
     this.supplierClients.set(OpenAIClient.SUPPLIER, new OpenAIClient());
+    this.supplierClients.set(StabilityClient.SUPPLIER, new StabilityClient());
     this.supplierClients.forEach((supplierClient) => {
       supplierClient.initClients().then(() => {
         logger.info(`${supplierClient.supplier} clients initialized`);
@@ -52,22 +55,44 @@ export class SupplierClientAgent {
     this.supplierClients.get(token.supplier!)!.removeClient(token.id);
   }
 
-  getRandomClient(model: string, caller: Caller): [Token, ApiProxy<ApiClient>] {
-    if (model.startsWith('claude')) {
-      return this.supplierClients.get(AnthropicClient.SUPPLIER)!.getRandomClient(model, caller);
-    } else if (model.startsWith('gpt') || model.startsWith('text') || model.startsWith('code') || model.startsWith('dall')) {
-      return this.supplierClients.get(OpenAIClient.SUPPLIER)!.getRandomClient(model, caller);
+  getClient(supplier: string, id: number): [Token, ApiClient] {
+    return this.supplierClients.get(supplier)!.getClient(id);
+  }
+
+  getRandomClient(model: string): [Token, ApiProxy<ApiClient>];
+  getRandomClient(model: string, user_id: number): [Token, ApiProxy<ApiClient>];
+  getRandomClient(model: string, caller: Caller): [Token, ApiProxy<ApiClient>];
+  getRandomClient(model: string, caller?: Caller | number): [Token, ApiProxy<ApiClient>] {
+    let supplierClient = this.getSupplierClient(model);
+    if (!supplierClient) {
+      throw new Error(`No ${model} client provide.`);
+    }
+    return supplierClient.getRandomClient(model, caller ? typeof caller === 'number' ? {user_id: caller} : caller : {});
+  }
+
+  getSupplierClient(model: string): SupplierClient<ApiClient> | undefined {
+    if (['claude', 'anthropic'].some(prefix => model.startsWith(prefix))) {
+      return this.supplierClients.get(AnthropicClient.SUPPLIER);
+    } else if (['gpt', 'text', 'code', 'dall', 'openai'].some(prefix => model.startsWith(prefix))) {
+      return this.supplierClients.get(OpenAIClient.SUPPLIER);
+    } else if (['stable', 'stability'].some(prefix => model.startsWith(prefix))) {
+      return this.supplierClients.get(StabilityClient.SUPPLIER);
     } else {
-      throw new Error(`No ${model} provide.`);
+      throw new Error(`No ${model} client provide.`);
     }
   }
 
-  getAllAvailableModels(): { label: string, value: string }[] {
-    let models: any[] = [];
-    this.supplierClients.forEach((supplierClient) => {
-      models = models.concat(supplierClient.getAvailableModels());
-    });
-    return models;
+  async listModels(): Promise<MixModel[]> {
+    const mixModels: MixModel[] = [];
+    for (const supplier of ['openai', 'anthropic', 'stability']) {
+      try {
+        await this.getRandomClient(supplier)[1].listModels(true).then((models) => {
+          mixModels.push(...models);
+        }).catch();
+      } catch (e) {
+      }
+    }
+    return mixModels;
   }
 }
 
@@ -145,12 +170,12 @@ export class Chat {
     const token_messages = this.messages
       .filter((message) => message.content && message.content.length > 0)
       .map((message) => {
-      return {
-        name: message.name || '',
-        content: message.content!,
-        role: message.role === 'function' ? 'user' : message.role
-      };
-    });
+        return {
+          name: message.name || '',
+          content: message.content!,
+          role: message.role === 'function' ? 'user' : message.role
+        };
+      });
     if (token_messages.length === 0) return [0, 0];
     // Calculate token usage based on input and output respectively
     const input = new GPTTokens({

@@ -1,4 +1,4 @@
-import {DataTypes} from 'sequelize';
+import {DataTypes, Op} from 'sequelize';
 import {Column, Model, Table} from "sequelize-typescript";
 import {getLogger} from "../utils/logger";
 import {supplierClientAgent} from "../ai";
@@ -123,20 +123,21 @@ class Token extends Model<TokenAttributes> implements TokenAttributes {
   public static async getChatModels() {
     return Token.findAll({
       where: {
-        status: 1
+        status: 1,
       },
       raw: true
     }).then((tokens) => {
       if (tokens.length === 0) {
-        logger.warn("No ChatGPT tokens provided");
+        logger.warn("No Chat tokens provided");
         return;
       }
-      let models = new Set(tokens.flatMap((token) => {
+      let configuredModels = new Set(tokens.flatMap((token) => {
         return token.models?.split(",");
       }));
-      return supplierClientAgent.getAllAvailableModels().filter((model) => {
-        return models.has(model.value);
-      });
+      return supplierClientAgent.listModels()
+        .then(models => models.filter((model) => {
+          return configuredModels.has(model.model);
+        }));
     });
   }
 }

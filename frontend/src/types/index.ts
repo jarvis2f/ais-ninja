@@ -1,6 +1,6 @@
 import {NotificationInfo} from './admin'
 import React from "react";
-import {getAPIKeyUsage} from "@/request/api";
+import {GenerationRequestParams, TextToImageResponse} from "@/types/stable_studio";
 
 export interface RequestLoginParams {
 	account: string
@@ -260,4 +260,19 @@ export interface APIKeyUsageDailyInfo {
 
 export interface InvitedInfo {
 	invited_count: number
+}
+
+export interface MixModelInfo {
+	name: string;
+	model: string;
+	supplier: string;
+	type: string
+}
+
+export interface StabilityImageInfo {
+	id: string
+	status: 'loading' | 'finish'
+	create_time?: Date
+	parameters?: GenerationRequestParams & { model?: string }
+	images?: TextToImageResponse[]
 }

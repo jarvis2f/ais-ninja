@@ -1,6 +1,9 @@
 import {Token} from "../../models/Token";
 import Anthropic from "@anthropic-ai/sdk";
 import {SupplierClient} from "../SupplierClient";
+import {Caller} from "../types";
+import ApiProxy from "../ApiProxy";
+import {AnthropicProxy} from "./AnthropicProxy";
 
 export class AnthropicClient extends SupplierClient<Anthropic> {
 
@@ -17,54 +20,8 @@ export class AnthropicClient extends SupplierClient<Anthropic> {
     });
   }
 
-  getAvailableModels(): { label: string; value: string }[] {
-    return available_models;
+  buildProxy(client: [Token, Anthropic], caller: Caller): [Token, ApiProxy<Anthropic>] {
+    return [client[0], new AnthropicProxy(client[1] as Anthropic, caller.user_id!, caller.api_key_id)];
   }
-}
 
-const available_models = [
-  {
-    label: 'claude-1',
-    value: 'claude-1'
-  },
-  {
-    label: 'claude-1-100k',
-    value: 'claude-1-100k'
-  },
-  {
-    label: 'claude-instant-1',
-    value: 'claude-instant-1'
-  },
-  {
-    label: 'claude-instant-1-100k',
-    value: 'claude-instant-1-100k'
-  },
-  {
-    label: 'claude-1.3',
-    value: 'claude-1.3'
-  },
-  {
-    label: 'claude-1.3-100k',
-    value: 'claude-1.3-100k'
-  },
-  {
-    label: 'claude-1.2',
-    value: 'claude-1.2'
-  },
-  {
-    label: 'claude-1.0',
-    value: 'claude-1.0'
-  },
-  {
-    label: 'claude-instant-1.1',
-    value: 'claude-instant-1.1'
-  },
-  {
-    label: 'claude-instant-1.1-100k',
-    value: 'claude-instant-1.1-100k'
-  },
-  {
-    label: 'claude-instant-1.0',
-    value: 'claude-instant-1.0'
-  }
-];
+}

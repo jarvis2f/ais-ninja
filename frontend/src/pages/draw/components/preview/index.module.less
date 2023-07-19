@@ -1,0 +1,158 @@
+.draw_preview {
+	display: flex;
+	flex-direction: row;
+	gap: 1rem;
+	overflow-y: auto;
+	max-width: calc(100vw - 5rem);
+	max-height: calc(100vh - 5rem);
+	width: calc(100vw - 5rem);
+	height: calc(100vh - 5rem);
+	background-color: #fff;
+	border-radius: 0.25rem;
+
+	&_image {
+		display: flex;
+		align-items: center;
+		flex-basis: 0;
+		flex-grow: 3;
+		flex-shrink: 1;
+		aspect-ratio: 1 / 1;
+		background-color: rgb(0 0 0 / 0.75);
+		justify-content: center;
+
+		[class*="ant-image-preview-img"] {
+			max-height: 100%;
+		}
+	}
+
+	&_info {
+		display: flex;
+		flex-direction: column;
+		flex-basis: 0;
+		flex-grow: 1;
+		flex-shrink: 1;
+		gap: 1rem;
+		text-align: start;
+		overflow-x: hidden;
+		overflow-y: auto;
+		padding: 2rem 1rem 2rem 0;
+
+		&_prompt {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+			border-bottom: 1px solid #9a9a9a;
+			padding-bottom: 1rem;
+
+			span {
+				color: #9a9a9a;
+			}
+		}
+
+		&_operate {
+			display: flex;
+			flex-direction: row;
+			gap: 1rem;
+			border-bottom: 1px solid #9a9a9a;
+			padding-bottom: 1rem;
+		}
+
+		&_config {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 1rem;
+
+			&_model {
+				align-items: center;
+				display: flex;
+				border: 1px solid #9a9a9a;
+				border-radius: 0.2rem;
+				padding: 0.2rem;
+			}
+
+			&_style {
+				display: flex;
+				align-items: center;
+				border: 1px solid #9a9a9a;
+				border-radius: 0.2rem;
+				padding: 0.2rem;
+
+				img {
+					width: 1.25rem;
+					height: 1.25rem;
+					border-radius: 0.25rem;
+					margin-right: 0.2rem;
+				}
+			}
+		}
+
+		&_configs {
+			display: grid;
+			gap: 1rem;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+
+			& span:nth-of-type(1) {
+				color: #9a9a9a;
+			}
+
+			&_ratio {
+				display: flex;
+				gap: 1rem;
+			}
+
+			&_size {
+				display: flex;
+				gap: 1rem;
+			}
+
+			&_seed {
+				display: flex;
+				gap: 1rem;
+			}
+
+			&_steps {
+				display: flex;
+				gap: 1rem;
+			}
+		}
+	}
+}
+
+.draw_preview_mobile {
+	flex-direction: column;
+	max-width: 100%;
+	max-height: 100%;
+	width: 100%;
+	height: 100%;
+
+	& > .draw_preview_image {
+		flex-grow: 0;
+		height: 20rem;
+	}
+
+	& > .draw_preview_info {
+		padding: 0 2rem;
+	}
+}
+
+:global {
+	.draw_image {
+		.ant-image-preview-close {
+			top: 43px;
+			right: 43px;
+			color: #a7a7a7;
+			border-radius: 0.25rem;
+			padding: 6px;
+		}
+	}
+
+	.draw_image_mobile {
+		.ant-image-preview-close {
+			top: 1rem;
+			right: 1rem;
+			color: #a7a7a7;
+			border-radius: 0.25rem;
+			padding: 6px;
+		}
+	}
+}

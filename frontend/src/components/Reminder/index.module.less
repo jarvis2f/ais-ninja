@@ -30,12 +30,10 @@
 	}
 
 	&_question {
-		margin-top: 100px;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 12px;
-		flex-flow: wrap;
+		margin-top: 2rem;
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 1rem;
 
 		&_item {
 			min-width: 212px;

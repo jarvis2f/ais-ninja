@@ -9,16 +9,15 @@ enum ConfigNameEnum {
   INVITEE_REWARD = 'invitee_reward',
   // 邀请者奖励
   INVITER_REWARD = 'inviter_reward',
-  DRAW_USE_PRICE = 'draw_use_price',
   HISTORY_MESSAGE_COUNT = 'history_message_count',
   SIGNIN_REWARD = 'signin_reward',
+  MODEL_RATIO = 'model_ratio',
+  USER_LEVEL_RATIO = 'user_level_ratio',
 
   // deprecated
   AI3_RATIO = 'ai3_ratio',
   AI4_RATIO = 'ai4_ratio',
-
-  MODEL_RATIO = 'model_ratio',
-  USER_LEVEL_RATIO = 'user_level_ratio',
+  DRAW_USE_PRICE = 'draw_use_price',
 }
 
 interface ConfigAttributes {

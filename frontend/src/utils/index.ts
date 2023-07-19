@@ -7,5 +7,6 @@ export * from './filterObjectNull'
 export * from './copyToClipboard'
 export * from './getEmailPre'
 export * from './handleChatData'
+export * from './downloadImages'
 import is from './is'
 export { is }

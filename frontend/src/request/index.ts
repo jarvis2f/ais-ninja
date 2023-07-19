@@ -84,6 +84,7 @@ const interceptorsResponse = async <T>(options: any, response: any): Promise<Res
 	if (data.code) {
 		if (response.status === 401) {
 			userStore.getState().logout()
+			location.href = '/login'
 		}
 		if (data.message) {
 			notification.error({

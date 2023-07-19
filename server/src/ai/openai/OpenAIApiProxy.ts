@@ -7,14 +7,50 @@ import {
   CreateEmbeddingResponse,
   CreateImageRequest,
   ImagesResponse,
+  ListModelsResponse,
+  Model,
   OpenAIApi
 } from "openai";
-import {AxiosRequestConfig} from "axios";
+import {AxiosRequestConfig, AxiosResponse} from "axios";
 import http from "http";
 import charging from "../../charging";
 import ApiProxy from "../ApiProxy";
+import {MixModel} from "../types";
 
 class OpenAIApiProxy extends ApiProxy<OpenAIApi> {
+
+  async listModels(mix?: boolean): Promise<MixModel[]>;
+  async listModels(options?: AxiosRequestConfig): Promise<AxiosResponse<ListModelsResponse>>;
+  async listModels(optionsOrMix?: AxiosRequestConfig | boolean, mix?: boolean): Promise<AxiosResponse<ListModelsResponse> | MixModel[]> {
+    if (typeof optionsOrMix === 'boolean') {
+      mix = optionsOrMix;
+      optionsOrMix = undefined;
+    }
+    return await this.apiClient.listModels(optionsOrMix).then((response) => {
+      if (mix) {
+        const mappedModels = response.data.data.map((model) => {
+          return {
+            name: model.id.toUpperCase(),
+            model: model.id,
+            supplier: 'openai',
+            type: 'text' as const,
+          }
+        });
+        return [...mappedModels, {
+          name: 'DALL-E',
+          model: 'dall-e',
+          supplier: 'openai',
+          type: 'image' as const,
+        }];
+      } else {
+        return response;
+      }
+    });
+  }
+
+  async retrieveModel(model: string, options?: AxiosRequestConfig): Promise<AxiosResponse<Model>> {
+    return await this.apiClient.retrieveModel(model, options);
+  }
 
   async createChatCompletion(createChatCompletionRequest: CreateChatCompletionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CreateChatCompletionResponse, any>> {
     await this.checkQuota();

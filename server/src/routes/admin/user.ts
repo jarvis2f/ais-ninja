@@ -25,11 +25,11 @@ router.delete('/:id', async function (req, res) {
   })));
 });
 router.put('/', async function (req, res) {
-  const {id, account, avatar, integral, nickname, role, vip_expire_time, svip_expire_time, status} = req.body;
+  const {id, account, avatar, integral, nickname, role, level_expire_time, status} = req.body;
   if (!id) {
     res.json(ApiResponse.miss());
     return;
   }
-  res.json(ApiResponse.success(await User.upsert({id, account, avatar, integral, nickname, role, vip_expire_time, svip_expire_time, status} as User)));
+  res.json(ApiResponse.success(await User.upsert({id, account, avatar, integral, nickname, role, level_expire_time, status} as User)));
 });
 export default router;

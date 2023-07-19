@@ -1,5 +1,5 @@
 import {CommentOutlined, DeleteOutlined} from '@ant-design/icons'
-import {Button, message, Modal, Popconfirm, Select, Space} from 'antd'
+import {Button, message, Modal, Popconfirm, Select, Space, Tabs} from 'antd'
 import {useLayoutEffect, useMemo, useRef, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import styles from './index.module.less'
@@ -16,6 +16,7 @@ import {useScroll} from '@/hooks/useScroll'
 import useDocumentResize from '@/hooks/useDocumentResize'
 import Layout from '@/components/Layout'
 import {pluginStore} from './components/Plugin/store';
+import RoleNetwork from "@/pages/chat/components/RoleNetwork";
 
 function ChatPage() {
 	const {t} = useTranslation()
@@ -296,7 +297,10 @@ ${JSON.stringify(response, null, 4)}
 								style={{width: '100%'}}
 								defaultValue={config.model}
 								value={config.model}
-								options={models.map((m) => ({...m, label: t('AI模型: ') + m.label}))}
+								options={models.filter(m => m.type === 'text').map((m) => ({
+									value: m.model,
+									label: t('AI模型: ') + m.name
+								}))}
 								onChange={(e) => {
 									changeConfig({
 										...config,
@@ -408,23 +412,23 @@ ${JSON.stringify(response, null, 4)}
 					top: 50
 				}}
 			>
-				<RoleLocal/>
+				{/*<RoleLocal/>*/}
 
-				{/* <Tabs
-          tabPosition={bodyResize.width <= 600 ? 'top' : 'left'}
-          items={[
-            {
-              key: 'roleLocal',
-              label: '本地数据',
-              children: <RoleLocal />
-            },
-            {
-              key: 'roleNetwork',
-              label: '网络数据',
-              children: <RoleNetwork />
-            }
-          ]}
-        /> */}
+				<Tabs
+					tabPosition={bodyResize.width <= 600 ? 'top' : 'left'}
+					items={[
+						{
+							key: 'roleLocal',
+							label: '本地数据',
+							children: <RoleLocal/>
+						},
+						{
+							key: 'roleNetwork',
+							label: '网络数据',
+							children: <RoleNetwork/>
+						}
+					]}
+				/>
 			</Modal>
 		</div>
 	)
