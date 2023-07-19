@@ -46,6 +46,7 @@ router.get("/config", async (req, res) => {
     login_methods: login_methods,
     models: await Token.getChatModels(),
     server_domain: config?.getConfigValue('server.domain'),
+    site_info: await Config.getConfig(ConfigNameEnum.SITE_INFO).then(config => config ? JSON.parse(config) : {}),
   }));
 });
 

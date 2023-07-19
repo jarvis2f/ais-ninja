@@ -13,6 +13,7 @@ enum ConfigNameEnum {
   SIGNIN_REWARD = 'signin_reward',
   MODEL_RATIO = 'model_ratio',
   USER_LEVEL_RATIO = 'user_level_ratio',
+  SITE_INFO = 'site_info',
 
   // deprecated
   AI3_RATIO = 'ai3_ratio',

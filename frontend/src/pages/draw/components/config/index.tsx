@@ -76,7 +76,7 @@ function Config(props: ConfigProps) {
 		const modelOptions = models.filter(m => m.supplier === 'stability')
 			.map(m => ({label: m.name, value: m.model}))
 		setConfigs(configs => {
-			return {...configs, model: modelOptions[0].value}
+			return {...configs, model: modelOptions?.length > 0 ? modelOptions[0].value : ''}
 		});
 		return modelOptions;
 	}, [models]);

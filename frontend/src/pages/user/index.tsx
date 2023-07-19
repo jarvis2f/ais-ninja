@@ -5,16 +5,18 @@ import {Link, Outlet} from "react-router-dom";
 import {PageContainer, ProLayout} from "@ant-design/pro-components";
 import HeaderRender from "@/components/HeaderRender";
 import {useTranslation} from "react-i18next";
+import {configStore} from "@/store";
 
 function User() {
 	const [pathname, setPathname] = useState('');
 	const {t} = useTranslation()
+	const {site_info} = configStore()
 
 	return (
 		<div className={styles.user}>
 			<ProLayout
-				title={import.meta.env.VITE_APP_TITLE}
-				logo={import.meta.env.VITE_APP_LOGO}
+				title={site_info?.title}
+				logo={site_info?.logo}
 				layout="mix"
 				splitMenus={false}
 				contentWidth="Fluid"

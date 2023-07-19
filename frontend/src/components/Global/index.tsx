@@ -16,9 +16,37 @@ type Props = {
 }
 
 function Global(props: Props) {
-	const {models, config, configModal, changeConfig, setConfigModal, notifications} = configStore()
+	const {site_info, models, config, configModal, changeConfig, setConfigModal, notifications} = configStore()
 	const {chats, addChat, changeSelectChatId} = chatStore()
 	const {language, loginModal, setLoginModal} = userStore()
+
+	function createMetaElement(key: string, value: string) {
+		const isMeta = document.querySelector(`meta[name="${key}"]`)
+		if (!isMeta) {
+			const head = document.querySelector('head')
+			const meta = document.createElement('meta')
+			meta.name = key
+			meta.content = value
+			head?.appendChild(meta)
+		}
+	}
+
+	function createLinkElement(key: string, value: string) {
+		const isLink = document.querySelector(`link[rel="${key}"]`)
+		if (!isLink) {
+			const head = document.querySelector('head')
+			const link = document.createElement('link')
+			link.rel = key
+			link.href = value
+			head?.appendChild(link)
+		}
+	}
+
+	useEffect(() => {
+		site_info?.logo && createLinkElement('icon', site_info?.logo)
+		site_info?.description && createMetaElement('description', site_info?.description)
+		site_info?.keywords && createMetaElement('keywords', site_info?.keywords)
+	}, [site_info])
 
 	i18n.use(initReactI18next)
 		.init({

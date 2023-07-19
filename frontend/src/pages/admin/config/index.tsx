@@ -18,7 +18,20 @@ const modelRatioHelp = JSON.stringify(JSON.parse(`
     "gpt-3.5-turbo": {
         "input": 1,
         "output": 1
-    }
+    },
+    "!SDXL": {
+     "512*512": {
+        "15": "非 SDXL 模型的 512*512 steps为15的倍率"
+     }
+   },
+   "stable-diffusion-xl-1024-v0-9": {
+     "15": "此模型只跟steps有关"
+   },
+   "stable-diffusion-xl-beta-v2-2-2": {
+      "512*512": {
+        "15": "非 SDXL 模型的 512*512 steps为15的倍率"
+      }
+   }
 }
 `), null, 2)
 const userLevelRatioHelp = JSON.stringify(JSON.parse(`
@@ -32,6 +45,14 @@ const userLevelRatioHelp = JSON.stringify(JSON.parse(`
 
 function ConfigPage() {
 	const [configs, setConfigs] = useState<Array<ConfigInfo>>([])
+
+	const [siteInfoForm] = Form.useForm<{
+		title: string
+		logo: string
+		description: string
+		keywords: string
+	}>()
+
 	const [rewardForm] = Form.useForm<{
 		register_reward: number | string
 		signin_reward: number | string
@@ -72,6 +93,7 @@ function ConfigPage() {
 		const drawUsePrice = getConfigValue('draw_use_price', data)
 		const modelRatio = getConfigValue('model_ratio', data)
 		const userLevelRatio = getConfigValue('user_level_ratio', data)
+		const siteInfo = getConfigValue('site_info', data)
 		rewardForm.setFieldsValue({
 			register_reward: registerRewardInfo?.value || 0,
 			signin_reward: signinRewardInfo?.value || 0,
@@ -85,6 +107,15 @@ function ConfigPage() {
 			model_ratio: modelRatio.value,
 			user_level_ratio: userLevelRatio.value
 		})
+		if (siteInfo && siteInfo.value) {
+			const siteInfoValue = JSON.parse(siteInfo.value)
+			siteInfoForm.setFieldsValue({
+				title: siteInfoValue.title,
+				logo: siteInfoValue.logo,
+				description: siteInfoValue.description,
+				keywords: siteInfoValue.keywords
+			})
+		}
 		if (drawUsePrice && drawUsePrice.value) {
 			drawUsePriceForm.setFieldsValue({
 				draw_use_price: JSON.parse(drawUsePrice.value)
@@ -142,6 +173,58 @@ function ConfigPage() {
 					width: '100%'
 				}}
 			>
+				<div className={styles.config_form}>
+					<h3>网站设置</h3>
+					<QueryFilter
+						form={siteInfoForm}
+						onFinish={async (values: { [key: string]: string | number }) => {
+							putAdminConfig({
+								configs: [{
+									name: 'site_info',
+									value: JSON.stringify(values)
+								}]
+							})
+								.then((res) => {
+									if (res.code) {
+										message.error('保存失败')
+										return
+									}
+									message.success('保存成功')
+									onGetConfig()
+								})
+						}}
+						onReset={() => {
+							onRewardFormSet(configs)
+						}}
+						size="large"
+						collapsed={false}
+						defaultCollapsed={false}
+						requiredMark={false}
+						defaultColsNumber={79}
+						span={24}
+						labelWidth={140}
+						layout="vertical"
+						searchText="保存"
+						resetText="恢复"
+					>
+						<ProFormText
+							name="title"
+							label="网站标题"
+						/>
+						<ProFormText
+							name="logo"
+							label="网站 Logo"
+						/>
+						<ProFormTextArea
+							name="description"
+							label="网站 Description"
+						/>
+						<ProFormText
+							name="keywords"
+							label="网站 keywords"
+						/>
+					</QueryFilter>
+				</div>
 				<div className={styles.config_form}>
 					<h3>奖励激励</h3>
 					<QueryFilter
@@ -263,10 +346,13 @@ function ConfigPage() {
 						<ProFormTextArea
 							name="model_ratio"
 							label="模型倍率"
-							tooltip={(<pre style={{wordBreak: "break-word"}}>
+							tooltip={{
+								rootClassName: styles.model_ratio_tooltip,
+								placement: 'top',
+								title: (<pre style={{wordBreak: "break-word", width: '100%', minWidth: '100%'}}>
 									{modelRatioHelp}
-								</pre>
-							)}
+								</pre>)
+							}}
 							// initialValue={}
 							fieldProps={{
 								rows: 8

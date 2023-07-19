@@ -26,6 +26,12 @@ export interface ConfigState {
 			client_id: string
 		}
 	}
+	site_info?: {
+		title: string,
+		logo: string,
+		description: string,
+		keywords: string,
+	},
 	replaceData: (config: { [key: string]: any }) => void
 }
 
