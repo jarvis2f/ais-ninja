@@ -29,22 +29,22 @@ export function LoginCard(props: {
 
 	useEffect(() => {
 		const options = [];
+		options.push({
+			key: 'password',
+			label: t('密码登录')
+		});
 		if (login_methods?.includes('phone')) {
 			options.push({
 				key: 'phone',
-				label: t('手机号登录')
+				label: t('手机号注册')
 			});
 		}
 		if (login_methods?.includes('email')) {
 			options.push({
 				key: 'email',
-				label: t('邮箱登录')
+				label: t('邮箱注册')
 			});
 		}
-		options.push({
-			key: 'password',
-			label: t('密码登录')
-		});
 		setLoginOptions(options);
 		setLoginType(options[0].key);
 	}, [login_methods]);
