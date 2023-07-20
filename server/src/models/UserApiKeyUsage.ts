@@ -58,13 +58,13 @@ export class UserApiKeyUsage extends Model<UserApiKeyUsageAttributes, UserApiKey
   public model!: string;
 
   @Column({
-    type: DataTypes.TEXT,
+    type: DataTypes.TEXT('long'),
     allowNull: true,
   })
   public request?: string;
 
   @Column({
-    type: DataTypes.TEXT,
+    type: DataTypes.TEXT('long'),
     allowNull: true,
   })
   public response?: string;
