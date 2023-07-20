@@ -22,7 +22,7 @@ export function LoginCard(props: {
 	onSuccess: () => void
 }) {
 	const {t} = useTranslation()
-	const {social, login_methods} = configStore();
+	const {social, login_methods, site_info} = configStore();
 	const [loginType, setLoginType] = useState<LoginType>();
 	const [loginOptions, setLoginOptions] = useState<{ key: string, label: string }[]>([]);
 	const {setLoginModal} = userStore();
@@ -66,7 +66,7 @@ export function LoginCard(props: {
 		>
 			<LoginForm<RequestLoginParams>
 				form={props.form}
-				logo={import.meta.env.VITE_APP_LOGO}
+				logo={site_info?.logo}
 				title=""
 				subTitle={t('全网最便宜的人工智能对话')}
 				actions={(

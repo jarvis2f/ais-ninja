@@ -72,7 +72,7 @@ router.post('/chat/completions', async (req, res) => {
     }).reverse();
   });
 
-  const SAVE_MESSAGE_HANDLER = async (message: AiMessage[], model: string, usedTokens: number | [number, number]) => {
+  const SAVE_MESSAGE_HANDLER = async (message: AiMessage[], model: string) => {
     await Message.bulkCreate([
       ...message.filter((item) => !item.is_history).map((item) => {
         item.is_history = true;

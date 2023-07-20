@@ -150,47 +150,12 @@ export class Chat {
         return message.content && message.content.length > 0;
       })
     );
-    const tokens = this.calculate_usage();
     if (this.finishedHandlers.length > 0) {
       this.finishedHandlers.forEach((handler) => {
-        handler(this.messages, this.options.model, tokens);
+        handler(this.messages, this.options.model);
       });
     }
     callback && callback();
-  }
-
-  /**
-   * calculate token usage
-   */
-  calculate_usage(): [number, number] {
-    let model = this.options.model;
-    if (model.startsWith('claude')) {
-      model = model.includes('100k') ? 'gpt-3.5-turbo' : 'gpt-4';
-    }
-    const token_messages = this.messages
-      .filter((message) => message.content && message.content.length > 0)
-      .map((message) => {
-        return {
-          name: message.name || '',
-          content: message.content!,
-          role: message.role === 'function' ? 'user' : message.role
-        };
-      });
-    if (token_messages.length === 0) return [0, 0];
-    // Calculate token usage based on input and output respectively
-    const input = new GPTTokens({
-      model: model,
-      messages: [
-        ...token_messages.filter((message) => message.role === 'user'),
-      ]
-    }).usedTokens;
-    const output = new GPTTokens({
-      model: model,
-      messages: [
-        ...token_messages.filter((message) => message.role === 'assistant'),
-      ]
-    }).usedTokens;
-    return [input, output];
   }
 
   res_error(error: any) {

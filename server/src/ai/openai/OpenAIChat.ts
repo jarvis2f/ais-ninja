@@ -82,11 +82,12 @@ export class OpenAIChat extends Chat {
     if (message.function_call && message.function_call.name !== '') {
       const function_response = await this.call_function(message.function_call).catch((error) => {
         this.finished = true;
-        callback && callback(error);
+        this.res_error(error);
         return null;
       });
       if (function_response === null || function_response === '') {
-        callback && callback('无法查询到信息');
+        this.res_error('无法查询到信息')
+        callback && callback();
         this.finished = true;
         return;
       }
@@ -120,49 +121,6 @@ export class OpenAIChat extends Chat {
       self.res_error(error);
     });
     return transform;
-  }
-
-  getTransform() {
-    // let self = this;
-    // let transform = new Transform({
-    //   objectMode: true,
-    //   destroy(error: Error | null, callback: (error: Error | null) => void) {
-    //     if (self.finished && self.finished_callbacks.length > 0) {
-    //       self.finished_callbacks.forEach((callback) => {
-    //         callback(self.chatCompletions);
-    //       });
-    //     }
-    //     callback(error);
-    //   },
-    //   transform: ChatMessageTransform(
-    //     (partMessages: PartMessage[], callback: any) => {
-    //       const messages = partMessages
-    //         .map((message) => {
-    //           return JSON.stringify({
-    //             // id: message.id,
-    //             role: message.role,
-    //             segment: message.segment,
-    //             dateTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-    //             content: message.content,
-    //             parentMessageId: this.parentMessageId,
-    //           });
-    //         })
-    //         .join('\n\n');
-    //       if (logger.isLevelEnabled('debug')) {
-    //         logger.debug(`Send user data：${messages}`);
-    //       }
-    //       callback(null, messages + '\n\n');
-    //     },
-    //     async (completeMessage: any, callback?: any) => {
-    //
-    //     }
-    //   ),
-    // });
-    // transform.on('error', (error) => {
-    //   logger.error(`Transform Error: ${error}`);
-    //   self.res_error(error);
-    // })
-    // return transform;
   }
 
   init_functions(plugins: Plugin[]): this {
@@ -332,91 +290,3 @@ class OpenAIChatTransform extends ChatTransform<FunctionCallMessage> {
     this.completed_message.function_call!.arguments! += message.function_call?.arguments || '';
   }
 }
-
-// function ChatMessageTransform(dataHandler: DataHandler, stopHandler: StopHandler) {
-//   const completeMessage: ChatCompletionResponseMessage = {
-//     role: ChatCompletionRequestMessageRoleEnum.Assistant,
-//     content: '',
-//     function_call: {
-//       name: '',
-//       arguments: '',
-//     },
-//   };
-//   let caches = '';
-//   let function_call = false;
-//
-//   return async (chunk: Buffer | string, encoding: string, callback: () => void) => {
-//     const buffer = Buffer.from(chunk).toString();
-//     const partMessages: PartMessage[] = [];
-//     let stop = false;
-//
-//     buffer.toString()
-//       .split(/\n{2}/g)
-//       .map((item) => item.trim().replace(/^data: /, ''))
-//       .filter((item) => item !== '')
-//       .forEach((item) => {
-//         const partMessage: PartMessage = {
-//           function_call: {name: '', arguments: ''},
-//           content: '',
-//           segment: 'text',
-//           role: ChatCompletionRequestMessageRoleEnum.Assistant
-//         };
-//
-//         if (item === '[DONE]') {
-//           partMessage.segment = 'stop';
-//           stop = true;
-//         } else {
-//           try {
-//             item = JSON.parse(item);
-//           } catch (e) {
-//             if (caches !== '') {
-//               try {
-//                 caches = caches + item;
-//                 item = JSON.parse(caches);
-//                 caches = '';
-//               } catch (e) {
-//                 return;
-//               }
-//             } else {
-//               caches = item;
-//               return;
-//             }
-//           }
-//           // @ts-ignore
-//           partMessage.id = item.id || '';
-//           // @ts-ignore
-//           partMessage.content = item.choices?.[0]?.delta?.content || '';
-//           // @ts-ignore
-//           partMessage.function_call.name = item.choices?.[0]?.delta?.function_call?.name || '';
-//           // @ts-ignore
-//           partMessage.function_call.arguments = item.choices?.[0]?.delta?.function_call?.arguments || '';
-//           // @ts-ignore
-//           partMessage.segment = item.choices?.[0]?.delta?.role === 'assistant' ? 'start' : 'text';
-//
-//           if (!function_call)
-//             // @ts-ignore
-//             function_call = partMessage.function_call?.name || partMessage.function_call?.arguments;
-//
-//           completeMessage.content! += partMessage.content;
-//           completeMessage.function_call!.name! += partMessage.function_call?.name;
-//           completeMessage.function_call!.arguments! += partMessage.function_call?.arguments;
-//         }
-//
-//         partMessages.push(partMessage);
-//       });
-//
-//     let is_callback = false;
-//
-//     if (partMessages.length > 0 && !function_call) {
-//       await dataHandler(partMessages, callback);
-//       is_callback = true;
-//     }
-//
-//     if (stop) {
-//       await stopHandler(completeMessage, is_callback ? undefined : callback);
-//       is_callback = true;
-//     }
-//
-//     !is_callback && callback();
-//   };
-// }

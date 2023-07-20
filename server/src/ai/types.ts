@@ -63,7 +63,7 @@ export interface MessageHandler<T extends Message> {
 }
 
 export interface FinishHandler {
-  (message: Message[], model: string, usedTokens: number | [number, number]): void;
+  (message: Message[], model: string): void;
 }
 
 export const DefaultDataHandler: MessageHandler<PartMessage> = (partMessages: PartMessage[] | PartMessage, callback: any) => {
