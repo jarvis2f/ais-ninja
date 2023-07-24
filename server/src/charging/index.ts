@@ -77,10 +77,14 @@ async function calculateUsageGroup(model: string, level: UserLevelEnum,
                                    tokens: number | [number, number],
                                    ...modelRatioKeys: string[]): Promise<[number, number]> {
   const modelRatioItem = await Config.getConfig(ConfigNameEnum.MODEL_RATIO).then((config) => {
+    if (!config)
+      return undefined;
     let modelRatio: ModelRatio = JSON.parse(config);
     return modelRatio[model];
   });
   const userLevelRatioItem = await Config.getConfig(ConfigNameEnum.USER_LEVEL_RATIO).then((config) => {
+    if (!config)
+      return 0;
     let userLevelRatio: UserLevelRatio = JSON.parse(config);
     return userLevelRatio[UserLevelEnum[level]] || 0;
   });

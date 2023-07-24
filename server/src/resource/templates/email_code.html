@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to AIS!</title>
+    <title>Welcome to {{site_name}}!</title>
     <style>
         /* Reset some default styles for better compatibility */
         body {
@@ -90,14 +90,14 @@
 <body>
 <div class="container">
     <div class="logo">
-        <img src="https://ais.ninja/logo.svg" alt="Logo">
+        <img src="{{site_logo}}" alt="Logo">
     </div>
     <div class="content">
-        <h1 class="heading">Welcome to AIS!</h1>
+        <h1 class="heading">Welcome to {{site_name}}!</h1>
         <p class="message">Thank you for joining our community. We're excited to have you on board.</p>
         <p class="message">To complete your registration, please use the verification code below:</p>
         <div class="verification-code">{{code}}</div>
-        <p class="message">If you have any questions or need assistance, please contact our support team at support@ais.ninja .</p>
+        <p class="message">If you have any questions or need assistance, please contact our support team.</p>
     </div>
     <div class="footer">
         <p>This email is automated, so please do not reply to this message.</p>

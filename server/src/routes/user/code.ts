@@ -4,6 +4,7 @@ import {redisClient} from "../../config/redis";
 import mailer from "../../utils/mailer";
 import path from "path";
 import sms from "../../utils/sms";
+import {Config, ConfigNameEnum} from "../../models/Config";
 
 const router = Router();
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -28,7 +29,17 @@ router.get('/send', async (req, res) => {
   if (type === 'phone') {
     await sms.send(source, code);
   } else {
-    await mailer.sendWithTemplate(source, 'Welcome to AIS!', path.join(__dirname, '../../resource/templates/email_code.html'), {code});
+    let siteInfo = await Config.getConfig(ConfigNameEnum.SITE_INFO).then((config) => {
+      return JSON.parse(config);
+    });
+    await mailer.sendWithTemplate(source,
+      `Welcome to ${siteInfo.title ? siteInfo.title : ''}!`,
+      path.join(__dirname, '../../resource/templates/email_code.html'),
+      {
+        code,
+        site_name: siteInfo.title ? siteInfo.title : '',
+        site_logo: siteInfo.logo ? siteInfo.logo : '',
+      });
   }
 
   res.json(ApiResponse.success({}, req.t('发送成功')));
