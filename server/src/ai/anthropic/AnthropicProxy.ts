@@ -36,7 +36,7 @@ export class AnthropicProxy extends ApiProxy<Anthropic> {
     return Promise.resolve(models.map(model => {
       return {
         ...model,
-        type: 'image',
+        type: 'text' as const,
         supplier: 'anthropic'
       }
     }));
