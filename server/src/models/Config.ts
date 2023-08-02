@@ -57,7 +57,7 @@ class Config extends Model<ConfigAttributes, ConfigCreationAttributes> implement
   public name!: ConfigNameEnum;
 
   @Column({
-    type: DataTypes.TEXT,
+    type: DataTypes.TEXT('long'),
     allowNull: false,
     defaultValue: '',
   })

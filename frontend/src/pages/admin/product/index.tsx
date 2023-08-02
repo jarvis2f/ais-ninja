@@ -294,13 +294,21 @@ function ProductPage() {
             radioType="button"
             options={[
               {
-                label: '普通会员',
-                value: 1
+                label: '普通用户',
+                value: 0
               },
               {
-                label: '超级会员',
-                value: 2
+                label: '会员',
+                value: 1
               },
+				{
+					label: '专业版',
+					value: 2
+				},
+				{
+					label: '商业版',
+					value: 3
+				},
             ]}
           />
         </ProFormGroup>

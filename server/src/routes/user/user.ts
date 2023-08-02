@@ -383,7 +383,7 @@ router.post('/pay/precreate', async (req, res) => {
     pay_type
   };
   const ip: string = utils.getClientIP(req);
-  const notifyUrl = `https://${req.get('host')?.split(':')[0]}/api/pay/notify?channel=${paymentInfo.channel}`;
+  const notifyUrl = `https://${req.get('host')?.split(':')[0]}/api/u/pay/notify?channel=${paymentInfo.channel}`;
   const amount = product.price / 100;
   const paymentParams = JSON.parse(paymentInfo.params);
   const paramsStringify = JSON.stringify({
@@ -518,7 +518,7 @@ const checkNotifySign = async (payment_id: number, data: { sign: string }, chann
 // 支付通知
 router.all('/pay/notify', async (req, res) => {
   try {
-    let pay_channel = req.body?.channel;
+    let pay_channel = req.query?.channel;
     if (pay_channel && pay_channel === 'alipay') {
       const {body, out_trade_no, trade_status, trade_no} = req.body;
       const orderInfo = await Order.findByPk(out_trade_no, {raw: true});
@@ -547,18 +547,15 @@ router.all('/pay/notify', async (req, res) => {
     }
     if (pay_channel && pay_channel === 'yipay') {
       const {out_trade_no, trade_status, trade_no} = req.query;
-      const order = await Order.findOne({
-        where: {
-          trade_no: out_trade_no! as string
-        },
+      const order = await Order.findByPk(out_trade_no! as string,{
         raw: true
       });
       if (!order || order.trade_status !== 'TRADE_AWAIT') {
         res.json('fail');
         return;
       }
-      const {payment_id, user_id, product_id} = JSON.parse(decodeURIComponent(req.query?.param as string));
-      const isCheck = await checkNotifySign(payment_id, req.query as { sign: string }, pay_channel);
+      const {payment_id, user_id, product_id} = order;
+      const isCheck = await checkNotifySign(payment_id!, req.query as { sign: string }, pay_channel);
       if (!isCheck) {
         res.json('fail');
         return;

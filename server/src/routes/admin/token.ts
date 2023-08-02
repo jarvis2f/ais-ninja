@@ -125,11 +125,11 @@ router.post('/check', async function (req, res) {
     });
     tokens.forEach((token) => {
       if (token.supplier === 'openai') {
-        addUsageCheckTask({
-          id: Number(token.id),
-          key: token.key,
-          host: token.host
-        });
+        // addUsageCheckTask({
+        //   id: Number(token.id),
+        //   key: token.key,
+        //   host: token.host
+        // });
       } else if (token.supplier === 'stability') {
         addStabilityUsageCheckTask({id: Number(token.id)})
       }

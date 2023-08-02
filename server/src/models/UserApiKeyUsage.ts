@@ -46,7 +46,7 @@ export class UserApiKeyUsage extends Model<UserApiKeyUsageAttributes, UserApiKey
   @Column({
     type: DataTypes.BIGINT({unsigned: true}),
     allowNull: true,
-    defaultValue: 0,
+    defaultValue: null,
   })
   public api_key_id?: number | null;
 

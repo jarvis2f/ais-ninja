@@ -45,7 +45,7 @@ docker run -d \
     -e DATABASE_PASSWORD=123456     \
     -e DATABASE_SYNC='true'     \
     -e REDIS_URL=redis://${url}:6379/0     \
-    jarvis2f/ais-ninja:v1.0.6
+    jarvis2f/ais-ninja:v1.0.8
 ```
 
 ### docker-compose
@@ -194,6 +194,14 @@ docker run -d \
 ```
 
 ## 更新记录
+
+### v1.0.8
+
+数据库变更：[v1.0.8.sql](deploy%2Fsql%2Fv1.0.8.sql)
+
+* 禁用 OpenAI token 使用量的额度查询
+* 易支付回调问题修改
+* 其它一些问题修复
 
 ### v1.0.6
 

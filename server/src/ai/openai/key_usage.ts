@@ -61,7 +61,7 @@ async function getKeyUsage(url: string, key: string): Promise<{
   hard_limit_usd: number;
   total_usage: number | string;
 }> {
-  const subscriptionUrl = `${url}/v1/dashboard/billing/subscription`;
+  const subscriptionUrl = `${url}/dashboard/billing/subscription`;
   const subscriptionRes = await fetch(subscriptionUrl, {
     method: 'GET',
     headers: {
@@ -80,7 +80,7 @@ async function getKeyUsage(url: string, key: string): Promise<{
   const data: SubscriptionData = await subscriptionRes.json() as SubscriptionData;
   const hard_limit_usd = data?.hard_limit_usd || 0;
   const now = new Date();
-  const usageUrl = `${url}/v1/dashboard/billing/usage`;
+  const usageUrl = `${url}/dashboard/billing/usage`;
   let startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
   const endDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   const subDate = new Date(now);
