@@ -67,7 +67,13 @@ function UsagePage() {
 		},
     ];
 
-	function showContentModal(content: string) {
+	function showContentModal(content: any) {
+		// content为{data:[],type:Buffer} blob 转 string
+		if (content?.type === 'Buffer' && content?.data) {
+			content = String.fromCharCode.apply(null, content.data);
+		} else {
+			content = content.toString();
+		}
 		let isJson = false;
 		try {
 			content = JSON.stringify(JSON.parse(content), null, 4);
