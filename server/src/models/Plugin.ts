@@ -44,7 +44,6 @@ class Plugin extends Model<PluginAttributes, PluginCreationAttributes> implement
   @Column({
     type: DataTypes.TEXT,
     allowNull: false,
-    defaultValue: ''
   })
   public description?: string;
   @Column({

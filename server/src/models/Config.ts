@@ -59,7 +59,6 @@ class Config extends Model<ConfigAttributes, ConfigCreationAttributes> implement
   @Column({
     type: DataTypes.TEXT('long'),
     allowNull: false,
-    defaultValue: '',
   })
   public value?: string;
 

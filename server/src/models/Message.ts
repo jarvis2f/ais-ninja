@@ -55,7 +55,6 @@ class Message extends Model<MessageAttributes, MessageCreationAttributes> implem
   @Column({
     type: DataTypes.TEXT,
     allowNull: false,
-    defaultValue: '',
   })
   public content!: string;
 
