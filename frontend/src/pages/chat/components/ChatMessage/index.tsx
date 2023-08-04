@@ -12,6 +12,7 @@ import {DeleteOutlined, LoadingOutlined} from '@ant-design/icons'
 
 import gpt4png from '@/assets/gpt4.png';
 import gpt3png from '@/assets/gpt3.png';
+import anthropicPNG from '@/assets/anthropic.png';
 import gptheaderpng from '@/assets/avator/26.svg';
 import {ChatPlugin} from '@/types';
 import DefaultPluginAvatar from '@/components/DefaultPluginAvatar';
@@ -154,7 +155,8 @@ function ChatMessage({
       {position === 'left' &&
         chatAvatar({
           style: {marginRight: 8},
-          icon: model && model.indexOf('gpt-4') !== -1 ? gpt4png : gpt3png
+          icon: model && model.indexOf('gpt-4') !== -1 ? gpt4png
+			  : model && model.indexOf('claude') !== -1 ? anthropicPNG : gpt3png
         })
       }
       <div className={styles.chat_message_content}>

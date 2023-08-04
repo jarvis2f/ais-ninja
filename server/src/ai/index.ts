@@ -5,7 +5,6 @@ import {AnthropicClient} from "./anthropic";
 import {StabilityClient} from "./stability";
 import {SupplierClient} from "./SupplierClient";
 import {Token} from "../models/Token";
-import {GPTTokens} from "gpt-tokens";
 import ApiProxy from "./ApiProxy";
 import {
   ApiClient,

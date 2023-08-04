@@ -51,7 +51,10 @@ router.post('/chat/completions', async (req, res) => {
     res.json(ApiResponse.error(500, req.t('GPT4为会员使用')));
     return;
   }
-
+  if (user.integral <= 0) {
+    res.json(ApiResponse.error(500, req.t('积分不足')));
+    return;
+  }
   const history_message_count = await Config.getConfig(ConfigNameEnum.HISTORY_MESSAGE_COUNT);
   const history_messages = await Message.findAll({
     where: {
@@ -119,6 +122,17 @@ router.post('/:supplier/images/generations', async (req, res) => {
     return;
   }
   const ip = utils.getClientIP(req);
+  const user = await User.findByPk(user_id, {
+    raw: true,
+  });
+  if (!user) {
+    res.json(ApiResponse.error(500, req.t('用户不存在')));
+    return;
+  }
+  if (user.integral <= 0) {
+    res.json(ApiResponse.error(500, req.t('积分不足')));
+    return;
+  }
   if (supplier === 'openai') {
     const {prompt, n = 1, width = 256, height = 256, response_format = 'url'} = req.body;
     const size = `${width}x${height}` as CreateImageRequestSizeEnum;

@@ -70,7 +70,8 @@ function UsagePage() {
 	function showContentModal(content: any) {
 		// content为{data:[],type:Buffer} blob 转 string
 		if (content?.type === 'Buffer' && content?.data) {
-			content = String.fromCharCode.apply(null, content.data);
+			const utf8Decoder = new TextDecoder('utf-8');
+			content = utf8Decoder.decode(new Uint8Array(content.data));
 		} else {
 			content = content.toString();
 		}
