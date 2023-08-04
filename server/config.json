@@ -19,8 +19,10 @@
     "host": "smtp.office365.com",
     "port": 587,
     "from": "email@outlook.com",
-    "auth_user": "user",
-    "auth_pass": "password",
+    "auth": {
+      "user": "user",
+      "pass": "password"
+    },
     "ignoreTLS": false,
     "secureConnection": false,
     "tls": {
