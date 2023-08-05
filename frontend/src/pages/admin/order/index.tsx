@@ -73,7 +73,11 @@ function OrderPage() {
 					qqpay: {
                         color: 'geekblue',
                         text: 'QQ支付'
-                    }
+                    },
+					stripe: {
+						color: 'purple',
+						text: 'stripe'
+					}
                 }
                 return <Tag color={type[data.pay_type].color}>{type[data.pay_type].text}</Tag>
             }
