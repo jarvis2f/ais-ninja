@@ -64,11 +64,17 @@ function ProductPage() {
       dataIndex: 'level',
       render: (_, data) => {
         if (data.level === 1) {
-          return <Tag color="#f50">普通会员</Tag>
+          return <Tag color="#f50">普通用户</Tag>
         }
         if (data.level === 2) {
-          return <Tag color="#ce9e4f">超级会员</Tag>
+          return <Tag color="#ce9e4f">会员</Tag>
         }
+		if (data.level === 3) {
+		  return <Tag color="#ce9e33">专业版</Tag>
+		}
+	    if (data.level === 3) {
+		  return <Tag color="#ce9fff">商业版</Tag>
+	    }
         return <Tag>暂无级别</Tag>
       }
     },
