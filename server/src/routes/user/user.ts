@@ -37,7 +37,7 @@ router.get("/config", async (req, res) => {
     user_introduce: await Config.getConfig(ConfigNameEnum.USER_INTRODUCE),
     invitee_reward: await Config.getConfig(ConfigNameEnum.INVITEE_REWARD),
     inviter_reward: await Config.getConfig(ConfigNameEnum.INVITER_REWARD),
-    notifications: Notification.getNormalNotifications(),
+    notifications: await Notification.getNormalNotifications(),
     social: {
       google: {
         client_id: login_methods.indexOf('google') !== -1 && config?.getConfigValue('social.google.client_id')
@@ -45,7 +45,7 @@ router.get("/config", async (req, res) => {
     },
     login_methods: login_methods,
     models: await Token.getChatModels(),
-    server_domain: config?.getConfigValue('server.domain'),
+    server_domain: await config?.getConfigValue('server.domain'),
     site_info: await Config.getConfig(ConfigNameEnum.SITE_INFO).then(config => config ? JSON.parse(config) : {}),
   }));
 });

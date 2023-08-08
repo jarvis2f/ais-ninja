@@ -73,6 +73,7 @@ class Notification extends Model<NotificationAttributes, NotificationCreationAtt
       where: {
         status: 1
       },
+      raw: true,
       order: [['sort', 'DESC']]
     });
   }
